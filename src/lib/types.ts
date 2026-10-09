@@ -8,6 +8,8 @@ export interface School {
   address: string | null;
   plan: "essentiel" | "pro" | "multi";
   trial_ends_at: string;
+  paid_until: string | null;
+  whatsapp_auto: boolean;
 }
 
 export interface Student {
@@ -100,4 +102,31 @@ export const LESSON_STATUS_LABEL: Record<Lesson["status"], string> = {
   done: "Faite",
   missed: "Absent",
   cancelled: "Annulée",
+};
+
+export interface Member {
+  user_id: string;
+  role: Role;
+  instructor_id: string | null;
+  full_name: string | null;
+  email: string | null;
+  created_at: string;
+}
+
+export interface Invitation {
+  id: string;
+  token: string;
+  role: "secretary" | "instructor";
+  instructor_id: string | null;
+  label: string;
+  created_at: string;
+  expires_at: string;
+  accepted_at: string | null;
+  revoked: boolean;
+}
+
+export const ROLE_LABEL: Record<Role, string> = {
+  owner: "Propriétaire",
+  secretary: "Secrétaire",
+  instructor: "Moniteur",
 };

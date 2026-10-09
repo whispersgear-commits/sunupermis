@@ -3,9 +3,16 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { normalizePhone } from "@/lib/phone";
+import { siteOrigin } from "@/lib/session";
 import type { FormState } from "@/components/ui/form";
 
 const text = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
+const TOKEN = /^[0-9a-f]{36}$/;
+
+/** Une destination de retour n'est suivie que si elle reste dans le site. */
+function safePath(path: string, fallback = "/app"): string {
+  return path.startsWith("/") && !path.startsWith("//") ? path : fallback;
+}
 
 export async function signIn(_s: FormState, fd: FormData): Promise<FormState> {
   const supabase = await createClient();
@@ -15,21 +22,26 @@ export async function signIn(_s: FormState, fd: FormData): Promise<FormState> {
   });
   if (error) {
     return {
-      error: error.message.includes("confirm")
+      error: error.message.toLowerCase().includes("confirm")
         ? "Confirmez d'abord votre adresse e-mail (lien reçu par e-mail)."
         : "E-mail ou mot de passe incorrect.",
     };
   }
-  redirect("/app");
+  redirect(safePath(text(fd, "next")));
 }
 
 /**
- * Inscription : crée le compte, puis l'école. Le nom de l'école est aussi
- * gardé dans le profil du compte : si Supabase demande de confirmer l'e-mail
- * avant la première connexion, l'école sera créée à ce moment-là (voir
- * `/bienvenue`).
+ * Inscription.
+ *
+ * Sans invitation, le compte crée sa propre école. Avec une invitation, il
+ * rejoint l'école qui l'a invité. Les informations sont aussi gardées dans le
+ * profil : si Supabase demande de confirmer l'e-mail avant la première
+ * connexion, l'école est créée (ou l'invitation acceptée) au retour, sur
+ * `/bienvenue`.
  */
 export async function signUp(_s: FormState, fd: FormData): Promise<FormState> {
+  const invite = text(fd, "invite");
+  const isInvite = TOKEN.test(invite);
   const school = text(fd, "school");
   const city = text(fd, "city");
   const fullName = text(fd, "name");
@@ -37,29 +49,41 @@ export async function signUp(_s: FormState, fd: FormData): Promise<FormState> {
   const password = String(fd.get("password") ?? "");
   const phone = normalizePhone(text(fd, "phone"));
 
-  if (school.length < 2 || fullName.length < 2) return { error: "Indiquez le nom de l'auto-école et votre nom." };
-  if (!phone) return { error: "Numéro de téléphone invalide." };
+  if (fullName.length < 2) return { error: "Indiquez votre nom." };
+  if (!isInvite && school.length < 2) return { error: "Indiquez le nom de l'auto-école." };
+  if (!isInvite && !phone) return { error: "Numéro de téléphone invalide." };
   if (password.length < 8) return { error: "Le mot de passe doit faire au moins 8 caractères." };
 
   const supabase = await createClient();
+  const origin = await siteOrigin();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: fullName, school_name: school, school_city: city, school_phone: phone } },
+    options: {
+      emailRedirectTo: `${origin}/auth/callback?next=/bienvenue`,
+      data: isInvite
+        ? { full_name: fullName, invite_token: invite }
+        : { full_name: fullName, school_name: school, school_city: city, school_phone: phone },
+    },
   });
   if (error) {
-    return { error: error.message.includes("registered") ? "Un compte existe déjà avec cet e-mail." : "Inscription impossible. Réessayez." };
+    return {
+      error: error.message.toLowerCase().includes("registered")
+        ? "Un compte existe déjà avec cet e-mail. Connectez-vous."
+        : "Inscription impossible. Réessayez.",
+    };
   }
-
   if (!data.session) {
-    return { success: "Compte créé ! Ouvrez l'e-mail de confirmation que nous venons d'envoyer, puis connectez-vous." };
+    return { success: "Compte créé ! Ouvrez l'e-mail de confirmation que nous venons d'envoyer pour continuer." };
   }
 
-  const { error: rpcError } = await supabase.rpc("create_school", {
-    school_name: school,
-    school_city: city,
-    school_phone: phone,
-  });
+  if (isInvite) {
+    const { error: joinError } = await supabase.rpc("accept_invitation", { invite_token: invite });
+    if (joinError) return { error: "Compte créé, mais l'invitation est invalide ou expirée. Demandez un nouveau lien." };
+    redirect("/app");
+  }
+
+  const { error: rpcError } = await supabase.rpc("create_school", { school_name: school, school_city: city, school_phone: phone });
   if (rpcError) return { error: "Le compte est créé, mais pas l'école. Connectez-vous pour terminer." };
   redirect("/app?bienvenue=1");
 }
@@ -75,6 +99,38 @@ export async function createSchool(_s: FormState, fd: FormData): Promise<FormSta
   });
   if (error) return { error: "Création impossible. Réessayez." };
   redirect("/app?bienvenue=1");
+}
+
+/** Un compte déjà connecté accepte une invitation. */
+export async function acceptInvite(_s: FormState, fd: FormData): Promise<FormState> {
+  const invite = text(fd, "invite");
+  if (!TOKEN.test(invite)) return { error: "Lien d'invitation invalide." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("accept_invitation", { invite_token: invite });
+  if (error) {
+    return { error: error.message.includes("déjà membre") ? "Vous faites déjà partie de cette auto-école." : "Invitation invalide ou expirée." };
+  }
+  redirect("/app");
+}
+
+export async function forgotPassword(_s: FormState, fd: FormData): Promise<FormState> {
+  const email = text(fd, "email").toLowerCase();
+  if (!email.includes("@")) return { error: "Adresse e-mail invalide." };
+  const supabase = await createClient();
+  const origin = await siteOrigin();
+  await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/auth/callback?next=/reinitialiser` });
+  // Même réponse que le compte existe ou non : ne pas révéler qui est inscrit.
+  return { success: "Si un compte existe avec cette adresse, un lien de réinitialisation vient d'être envoyé." };
+}
+
+export async function resetPassword(_s: FormState, fd: FormData): Promise<FormState> {
+  const password = String(fd.get("password") ?? "");
+  if (password.length < 8) return { error: "Le mot de passe doit faire au moins 8 caractères." };
+  if (password !== String(fd.get("confirm") ?? "")) return { error: "Les deux mots de passe ne correspondent pas." };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) return { error: "Lien expiré. Redemandez un e-mail de réinitialisation." };
+  redirect("/app");
 }
 
 export async function signOut() {

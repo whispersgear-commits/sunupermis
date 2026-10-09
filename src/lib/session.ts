@@ -9,6 +9,8 @@ export interface Context {
   email: string;
   fullName: string;
   role: Role;
+  /** Fiche moniteur reliée au compte (rôle « instructor »). */
+  instructorId: string | null;
   school: School;
 }
 
@@ -25,7 +27,7 @@ export const getContext = cache(async (): Promise<Context | "no-school" | null> 
 
   const { data: membership } = await supabase
     .from("memberships")
-    .select("role, school:schools(*)")
+    .select("role, instructor_id, school:schools(*)")
     .eq("user_id", user.id)
     .limit(1)
     .maybeSingle();
@@ -37,6 +39,7 @@ export const getContext = cache(async (): Promise<Context | "no-school" | null> 
     email: user.email ?? "",
     fullName: (user.user_metadata?.full_name as string) ?? "",
     role: membership.role as Role,
+    instructorId: (membership.instructor_id as string | null) ?? null,
     school: membership.school as unknown as School,
   };
 });
@@ -52,4 +55,21 @@ export async function requireStaff(): Promise<Context> {
   const ctx = await requireContext();
   if (ctx.role === "instructor") redirect("/app");
   return ctx;
+}
+
+export async function requireOwner(): Promise<Context> {
+  const ctx = await requireContext();
+  if (ctx.role !== "owner") redirect("/app");
+  return ctx;
+}
+
+/** Origine publique du site, pour les liens envoyés par e-mail ou WhatsApp. */
+export async function siteOrigin(): Promise<string> {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.URL;
+  if (configured) return configured.replace(/\/+$/, "");
+  const { headers } = await import("next/headers");
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  return `${proto}://${host}`;
 }

@@ -26,14 +26,19 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
   const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
   const end = addDays(monday, 7);
 
+  const isStaff = ctx.role !== "instructor";
+  let lessonQuery = supabase
+    .from("lessons")
+    .select("*, student:students(id, full_name, phone), instructor:instructors(full_name), vehicle:vehicles(label)")
+    .gte("starts_at", `${iso(monday)}T00:00:00Z`)
+    .lt("starts_at", `${iso(end)}T00:00:00Z`)
+    .neq("status", "cancelled")
+    .order("starts_at");
+  // Un moniteur relié à sa fiche ne voit que ses propres leçons.
+  if (!isStaff && ctx.instructorId) lessonQuery = lessonQuery.eq("instructor_id", ctx.instructorId);
+
   const [{ data: lessons }, { data: students }, { data: instructors }, { data: vehicles }] = await Promise.all([
-    supabase
-      .from("lessons")
-      .select("*, student:students(id, full_name, phone), instructor:instructors(full_name), vehicle:vehicles(label)")
-      .gte("starts_at", `${iso(monday)}T00:00:00Z`)
-      .lt("starts_at", `${iso(end)}T00:00:00Z`)
-      .neq("status", "cancelled")
-      .order("starts_at"),
+    lessonQuery,
     supabase.from("students").select("id, full_name").in("status", ["active", "code_ok"]).order("full_name"),
     supabase.from("instructors").select("id, full_name").eq("active", true).order("full_name"),
     supabase.from("vehicles").select("id, label").eq("active", true).order("label"),
@@ -65,7 +70,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
         }
       />
 
-      {ctx.role !== "instructor" && (
+      {isStaff && (
         <LessonForm
           students={(students ?? []).map((s) => ({ id: s.id, label: s.full_name }))}
           instructors={(instructors ?? []).map((i) => ({ id: i.id, label: i.full_name }))}
@@ -94,7 +99,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
               {list.length ? (
                 <div className="divide-y divide-line">
                   {list.map((l) => (
-                    <LessonRow key={l.id} lesson={l} />
+                    <LessonRow key={l.id} lesson={l} canCancel={isStaff} />
                   ))}
                 </div>
               ) : (

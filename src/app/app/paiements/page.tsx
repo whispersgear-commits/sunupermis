@@ -4,7 +4,7 @@ import { startOfMonth } from "date-fns";
 import { MessageCircle, Wallet, AlertTriangle, TrendingUp } from "lucide-react";
 import { Badge, ButtonLink, Card, CardTitle, Empty, PageHeader, Stat, StaggerItem, StaggerList } from "@/components/app/ui";
 import { createClient } from "@/lib/supabase/server";
-import { requireContext } from "@/lib/session";
+import { requireStaff } from "@/lib/session";
 import { money, shortDate } from "@/lib/format";
 import { displayPhone } from "@/lib/phone";
 import { paymentReminder, waLink } from "@/lib/whatsapp";
@@ -13,7 +13,7 @@ import { METHOD_LABEL, type Balance, type Payment } from "@/lib/types";
 export const metadata: Metadata = { title: "Paiements" };
 
 export default async function PaiementsPage() {
-  const ctx = await requireContext();
+  const ctx = await requireStaff();
   const supabase = await createClient();
 
   const [{ data: payments }, { data: balances }, { data: students }] = await Promise.all([

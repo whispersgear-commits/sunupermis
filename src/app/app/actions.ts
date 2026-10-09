@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { addMonths, formatISO } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
-import { requireContext, requireStaff } from "@/lib/session";
+import { requireContext, requireOwner, requireStaff, siteOrigin } from "@/lib/session";
+import { PLANS, planPrice, userLimit, type PlanId } from "@/lib/plans";
+import { createCheckout, waveConfigured } from "@/lib/wave";
+import { whatsappConfigured } from "@/lib/whatsapp-api";
+import { sendLessonReminders, sendPaymentReminders } from "@/lib/reminders";
 import { normalizePhone } from "@/lib/phone";
 import { parseAmount } from "@/lib/format";
 import type { FormState } from "@/components/ui/form";
@@ -62,7 +66,8 @@ export async function createStudent(_s: FormState, fd: FormData): Promise<FormSt
       due_date: formatISO(addMonths(new Date(firstDue), i), { representation: "date" }),
       amount: base + (i === 0 ? rest : 0),
     }));
-    await supabase.from("installments").insert(rows);
+    const { error: scheduleError } = await supabase.from("installments").insert(rows);
+    if (scheduleError) return { error: "Élève créé, mais l'échéancier n'a pas pu être enregistré." };
   }
 
   const initial = parseAmount(fd.get("initial_payment"));
@@ -179,11 +184,12 @@ export async function createLesson(_s: FormState, fd: FormData): Promise<FormSta
 }
 
 export async function markLesson(fd: FormData) {
-  await requireContext();
+  const ctx = await requireContext();
   const status = text(fd, "status");
   const supabase = await createClient();
   if (status === "cancelled") {
-    await supabase.from("lessons").update({ status }).eq("id", text(fd, "lesson_id"));
+    if (ctx.role === "instructor") return;
+    await supabase.from("lessons").update({ status }).eq("id", text(fd, "lesson_id")).eq("school_id", ctx.school.id);
   } else {
     // Passe par la fonction de la base : un moniteur ne peut marquer que ses
     // propres leçons, et seulement « faite » ou « absent ».
@@ -257,4 +263,121 @@ export async function updateSchool(_s: FormState, fd: FormData): Promise<FormSta
   if (error) return { error: "Enregistrement impossible." };
   revalidatePath("/app", "layout");
   return { success: "Informations enregistrées." };
+}
+
+// ---------------------------------------------------------------------------
+// Invitations et équipe (propriétaire)
+// ---------------------------------------------------------------------------
+
+export async function createInvitation(_s: FormState, fd: FormData): Promise<FormState> {
+  const ctx = await requireOwner();
+  const role = text(fd, "role") === "instructor" ? "instructor" : "secretary";
+  const label = text(fd, "label");
+  if (label.length < 2) return { error: "Indiquez le nom de la personne invitée." };
+
+  const supabase = await createClient();
+  const limit = userLimit(ctx.school);
+  if (limit !== null) {
+    const [{ count: members }, { count: pending }] = await Promise.all([
+      supabase.from("memberships").select("user_id", { count: "exact", head: true }).eq("school_id", ctx.school.id),
+      supabase
+        .from("invitations")
+        .select("id", { count: "exact", head: true })
+        .eq("school_id", ctx.school.id)
+        .is("accepted_at", null)
+        .eq("revoked", false)
+        .gt("expires_at", new Date().toISOString()),
+    ]);
+    if ((members ?? 0) + (pending ?? 0) >= limit) {
+      return { error: `La formule ${PLANS[ctx.school.plan].name} permet ${limit} compte${limit > 1 ? "s" : ""}. Passez à la formule supérieure pour inviter quelqu'un.` };
+    }
+  }
+
+  const { error } = await supabase.from("invitations").insert({
+    school_id: ctx.school.id,
+    role,
+    label,
+    instructor_id: role === "instructor" ? text(fd, "instructor_id") || null : null,
+    created_by: ctx.userId,
+  });
+  if (error) return { error: "Invitation non créée." };
+  revalidatePath("/app/equipe");
+  return { success: "Invitation créée. Envoyez le lien par WhatsApp." };
+}
+
+export async function revokeInvitation(fd: FormData) {
+  const ctx = await requireOwner();
+  const supabase = await createClient();
+  await supabase.from("invitations").update({ revoked: true }).eq("id", text(fd, "id")).eq("school_id", ctx.school.id);
+  revalidatePath("/app/equipe");
+}
+
+export async function removeMember(fd: FormData) {
+  const ctx = await requireOwner();
+  const userId = text(fd, "user_id");
+  if (userId === ctx.userId) return;
+  const supabase = await createClient();
+  await supabase.from("memberships").delete().eq("user_id", userId).eq("school_id", ctx.school.id);
+  revalidatePath("/app/equipe");
+}
+
+// ---------------------------------------------------------------------------
+// Abonnement (paiement Wave)
+// ---------------------------------------------------------------------------
+
+export async function startSubscription(_s: FormState, fd: FormData): Promise<FormState> {
+  const ctx = await requireOwner();
+  if (!waveConfigured()) return { error: "Le paiement en ligne n'est pas encore activé. Contactez-nous sur WhatsApp." };
+  const plan = text(fd, "plan") as PlanId;
+  if (!(plan in PLANS)) return { error: "Formule inconnue." };
+  const months = text(fd, "months") === "12" ? 12 : 1;
+  const amount = planPrice(plan, months);
+  const origin = await siteOrigin();
+
+  const checkout = await createCheckout({
+    amount,
+    clientReference: `${ctx.school.id}:${plan}:${months}`,
+    successUrl: `${origin}/app/abonnement?paiement=ok`,
+    errorUrl: `${origin}/app/abonnement?paiement=erreur`,
+  });
+  if (!checkout.ok) return { error: checkout.error };
+
+  // La ligne « en attente » porte l'identifiant de session Wave : c'est par
+  // lui, et seulement par lui, que le webhook confirmera le paiement.
+  const supabase = await createClient();
+  const { error } = await supabase.from("subscription_payments").insert({
+    school_id: ctx.school.id,
+    plan,
+    months,
+    amount,
+    provider_ref: checkout.id,
+    created_by: ctx.userId,
+  });
+  if (error) return { error: "Paiement non enregistré. Réessayez." };
+  redirect(checkout.url);
+}
+
+// ---------------------------------------------------------------------------
+// WhatsApp automatique
+// ---------------------------------------------------------------------------
+
+export async function setWhatsappAuto(fd: FormData) {
+  const ctx = await requireOwner();
+  const supabase = await createClient();
+  await supabase.from("schools").update({ whatsapp_auto: text(fd, "on") === "1" }).eq("id", ctx.school.id);
+  revalidatePath("/app", "layout");
+}
+
+export async function sendRemindersNow(_s: FormState, fd: FormData): Promise<FormState> {
+  const ctx = await requireStaff();
+  if (!whatsappConfigured()) return { error: "L'envoi automatique WhatsApp n'est pas encore configuré." };
+  const supabase = await createClient();
+  const date = text(fd, "date") || new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+  const lessons = await sendLessonReminders(supabase, ctx.school, date);
+  const payments = text(fd, "payments") === "1" ? await sendPaymentReminders(supabase, ctx.school) : { sent: 0, skipped: 0, failed: 0 };
+  revalidatePath("/app");
+  const sent = lessons.sent + payments.sent;
+  const failed = lessons.failed + payments.failed;
+  if (failed && !sent) return { error: `${failed} message${failed > 1 ? "s" : ""} non envoyé${failed > 1 ? "s" : ""}. Vérifiez la configuration WhatsApp.` };
+  return { success: `${sent} message${sent > 1 ? "s" : ""} envoyé${sent > 1 ? "s" : ""}${lessons.skipped ? ` · ${lessons.skipped} déjà envoyé${lessons.skipped > 1 ? "s" : ""}` : ""}${failed ? ` · ${failed} en échec` : ""}.` };
 }

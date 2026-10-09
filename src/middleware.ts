@@ -3,10 +3,14 @@ import { NextResponse, type NextRequest } from "next/server";
 
 /**
  * Rafraîchit la session Supabase à chaque navigation et protège l'espace
- * `/app` : sans session, retour à la connexion.
+ * `/app`. Transmet aussi le chemin demandé (`x-pathname`) : la mise en page
+ * de l'espace en a besoin pour savoir si une page reste accessible quand
+ * l'abonnement est échu.
  */
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  const headers = new Headers(request.headers);
+  headers.set("x-pathname", request.nextUrl.pathname);
+  let response = NextResponse.next({ request: { headers } });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,7 +20,7 @@ export async function middleware(request: NextRequest) {
         getAll: () => request.cookies.getAll(),
         setAll: (toSet) => {
           for (const { name, value } of toSet) request.cookies.set(name, value);
-          response = NextResponse.next({ request });
+          response = NextResponse.next({ request: { headers } });
           for (const { name, value, options } of toSet) response.cookies.set(name, value, options);
         },
       },
@@ -46,5 +50,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/app/:path*", "/connexion", "/inscription"],
+  matcher: ["/app/:path*", "/connexion", "/inscription", "/bienvenue", "/rejoindre/:path*", "/reinitialiser"],
 };

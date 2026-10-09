@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Check, X } from "lucide-react";
+import { Ban, Check, X } from "lucide-react";
 import { markLesson } from "@/app/app/actions";
 import { LESSON_STATUS_LABEL, type Lesson } from "@/lib/types";
 import { Badge } from "./ui";
@@ -12,8 +12,11 @@ export interface LessonWithNames extends Lesson {
 
 const TONE = { planned: "info", done: "good", missed: "bad", cancelled: "neutral" } as const;
 
-/** Une leçon, avec les boutons « Faite » et « Absent » tant qu'elle est prévue. */
-export function LessonRow({ lesson, showDate = false }: { lesson: LessonWithNames; showDate?: boolean }) {
+/**
+ * Une leçon, avec les boutons « Faite » et « Absent » tant qu'elle est prévue,
+ * et « Annuler » pour le bureau (`canCancel`).
+ */
+export function LessonRow({ lesson, showDate = false, canCancel = false }: { lesson: LessonWithNames; showDate?: boolean; canCancel?: boolean }) {
   const start = lesson.starts_at.slice(11, 16);
   const end = lesson.ends_at.slice(11, 16);
 
@@ -53,6 +56,19 @@ export function LessonRow({ lesson, showDate = false }: { lesson: LessonWithName
               <X className="h-3.5 w-3.5" /> Absent
             </button>
           </form>
+          {canCancel && (
+            <form action={markLesson}>
+              <input type="hidden" name="lesson_id" value={lesson.id} />
+              <input type="hidden" name="status" value="cancelled" />
+              <button
+                title="Annuler la leçon"
+                aria-label="Annuler la leçon"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted transition hover:border-red-300 hover:text-red-600 active:scale-95"
+              >
+                <Ban className="h-3.5 w-3.5" />
+              </button>
+            </form>
+          )}
         </div>
       ) : (
         <Badge tone={TONE[lesson.status]}>{LESSON_STATUS_LABEL[lesson.status]}</Badge>

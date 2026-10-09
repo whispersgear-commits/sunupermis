@@ -3,6 +3,15 @@
 Logiciel de gestion pour auto-écoles : élèves, planning des leçons sans double
 réservation, forfaits payés en plusieurs fois, examens et rappels WhatsApp.
 
+## Fonctions
+
+- **Équipe** : le propriétaire invite une secrétaire ou un moniteur par un lien
+  (WhatsApp ou copié). Le moniteur ne voit que ses leçons et jamais l'argent.
+- **Rappels WhatsApp automatiques** chaque soir à 18 h, ou en un clic
+  (`docs/WHATSAPP.md`). Sans configuration, un clic ouvre WhatsApp avec le
+  message prêt.
+- **Abonnement payé en ligne** par Wave (`docs/PAIEMENT.md`), 30 jours d'essai.
+
 ## Pile
 
 - **Next.js 15** (App Router, actions serveur), **TypeScript**, **Tailwind CSS 4**
@@ -26,10 +35,20 @@ npm install
 npm run dev
 ```
 
-La base se crée avec la migration `supabase/migrations/20261009000001_init.sql`.
+La base se crée avec les migrations de `supabase/migrations`, dans l'ordre.
 
 ## Déploiement (Netlify)
 
-Variables d'environnement à renseigner : `NEXT_PUBLIC_SUPABASE_URL` et
-`NEXT_PUBLIC_SUPABASE_ANON_KEY` (clé publique). Aucune clé secrète n'est
-utilisée par l'application.
+Variables d'environnement : voir `.env.example`. Seules
+`NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` sont
+obligatoires ; les autres activent le paiement Wave, les rappels WhatsApp
+automatiques et la tâche du soir.
+
+La clé `SUPABASE_SERVICE_ROLE_KEY` n'est utilisée que par le webhook Wave
+(après vérification de la signature) et par `/api/cron/rappels` (protégé par
+`CRON_SECRET`). Elle ne doit jamais avoir le préfixe `NEXT_PUBLIC_`.
+
+Dans Supabase > Authentication > URL Configuration : *Site URL*
+`https://sunupermis.netlify.app` et *Redirect URLs*
+`https://sunupermis.netlify.app/**` (confirmation d'e-mail, mot de passe
+oublié).

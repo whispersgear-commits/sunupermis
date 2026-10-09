@@ -15,7 +15,8 @@ const STATUS_TONE = { active: "info", code_ok: "warn", licensed: "good", dropped
 
 export default async function ElevesPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q = "" } = await searchParams;
-  await requireContext();
+  const ctx = await requireContext();
+  const isStaff = ctx.role !== "instructor";
   const supabase = await createClient();
 
   let query = supabase.from("students").select("*").order("created_at", { ascending: false }).limit(300);
@@ -30,7 +31,7 @@ export default async function ElevesPage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <PageHeader title="Élèves" description={`${list.length} élève${list.length > 1 ? "s" : ""}`} actions={<ButtonLink href="/app/eleves/nouveau">+ Nouvel élève</ButtonLink>} />
+      <PageHeader title="Élèves" description={`${list.length} élève${list.length > 1 ? "s" : ""}`} actions={isStaff ? <ButtonLink href="/app/eleves/nouveau">+ Nouvel élève</ButtonLink> : undefined} />
 
       <form className="relative mb-5 max-w-md">
         <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -69,9 +70,11 @@ export default async function ElevesPage({ searchParams }: { searchParams: Promi
                     </div>
                     <div className="text-right">
                       <Badge tone={STATUS_TONE[s.status]}>{STATUS_LABEL[s.status]}</Badge>
-                      <p className={`mt-1 text-xs font-semibold ${b && b.balance > 0 ? "text-red-600" : "text-brand-700"}`}>
-                        {b && b.balance > 0 ? `Reste ${money(b.balance)}` : "Soldé"}
-                      </p>
+                      {isStaff && (
+                        <p className={`mt-1 text-xs font-semibold ${b && b.balance > 0 ? "text-red-600" : "text-brand-700"}`}>
+                          {b && b.balance > 0 ? `Reste ${money(b.balance)}` : "Soldé"}
+                        </p>
+                      )}
                     </div>
                   </Link>
                 </StaggerItem>

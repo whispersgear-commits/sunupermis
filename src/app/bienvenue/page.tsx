@@ -10,9 +10,10 @@ import { createSchool } from "../auth-actions";
 export const metadata: Metadata = { title: "Bienvenue" };
 
 /**
- * Premier passage d'un compte sans école : celui qui a dû confirmer son
- * e-mail avant de se connecter. Les informations saisies à l'inscription sont
- * reprises du profil pour qu'il n'ait qu'à valider.
+ * Premier passage d'un compte sans école, typiquement après la
+ * confirmation de l'e-mail. Invité : on accepte l'invitation gardée dans le
+ * profil. Sinon : on confirme les informations de l'école saisies à
+ * l'inscription.
  */
 export default async function BienvenuePage() {
   const ctx = await getContext();
@@ -25,8 +26,16 @@ export default async function BienvenuePage() {
   } = await supabase.auth.getUser();
   const meta = (user?.user_metadata ?? {}) as Record<string, string>;
 
+  if (meta.invite_token) {
+    const { error } = await supabase.rpc("accept_invitation", { invite_token: meta.invite_token });
+    if (!error) redirect("/app");
+  }
+
   return (
-    <AuthShell title="Dernière étape" subtitle="Confirmez les informations de votre auto-école.">
+    <AuthShell
+      title="Dernière étape"
+      subtitle={meta.invite_token ? "Votre invitation a expiré : créez votre propre auto-école, ou demandez un nouveau lien." : "Confirmez les informations de votre auto-école."}
+    >
       <ActionForm action={createSchool} className="space-y-4">
         <Field label="Nom de l'auto-école">
           <Input name="school" required defaultValue={meta.school_name ?? ""} />

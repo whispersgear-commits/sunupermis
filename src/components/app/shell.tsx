@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { CalendarDays, CreditCard, LayoutDashboard, LogOut, Settings, Users, Wallet, Car } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { SunuAgenceBadge } from "@/components/sunu-agence-badge";
 import { cn } from "@/lib/utils";
 import { ROLE_LABEL, type Role } from "@/lib/types";
 
@@ -95,6 +96,7 @@ export function Shell({
               </button>
             </form>
           </div>
+          <SunuAgenceBadge className="border-t border-line pt-4" />
         </div>
       </aside>
 

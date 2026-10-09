@@ -85,6 +85,32 @@ export async function createStudent(_s: FormState, fd: FormData): Promise<FormSt
   redirect(`/app/eleves/${student.id}?nouveau=1`);
 }
 
+/** Coordonnées et suivi d'un élève. Le forfait et l'échéancier ne bougent pas ici. */
+export async function updateStudent(_s: FormState, fd: FormData): Promise<FormState> {
+  const ctx = await requireStaff();
+  const id = text(fd, "student_id");
+  const fullName = text(fd, "full_name");
+  const phone = normalizePhone(text(fd, "phone"));
+  if (fullName.length < 2) return { error: "Indiquez le nom de l'élève." };
+  if (!phone) return { error: "Numéro WhatsApp invalide." };
+  const license = text(fd, "license");
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("students")
+    .update({
+      full_name: fullName,
+      phone,
+      license: ["A", "B", "C", "D", "E"].includes(license) ? license : "B",
+      hours_planned: Math.max(0, parseAmount(fd.get("hours_planned"))),
+      notes: text(fd, "notes") || null,
+    })
+    .eq("id", id)
+    .eq("school_id", ctx.school.id);
+  if (error) return { error: "Modification impossible." };
+  revalidatePath("/app", "layout");
+  redirect(`/app/eleves/${id}`);
+}
+
 export async function updateStudentStatus(fd: FormData) {
   const ctx = await requireStaff();
   const supabase = await createClient();
@@ -373,8 +399,11 @@ export async function sendRemindersNow(_s: FormState, fd: FormData): Promise<For
   if (!whatsappConfigured()) return { error: "L'envoi automatique WhatsApp n'est pas encore configuré." };
   const supabase = await createClient();
   const date = text(fd, "date") || new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
-  const lessons = await sendLessonReminders(supabase, ctx.school, date);
-  const payments = text(fd, "payments") === "1" ? await sendPaymentReminders(supabase, ctx.school) : { sent: 0, skipped: 0, failed: 0 };
+  // « payments=only » : relances de paiement seules (page Paiements).
+  const none = { sent: 0, skipped: 0, failed: 0 };
+  const mode = text(fd, "payments");
+  const lessons = mode === "only" ? none : await sendLessonReminders(supabase, ctx.school, date);
+  const payments = mode === "1" || mode === "only" ? await sendPaymentReminders(supabase, ctx.school) : none;
   revalidatePath("/app");
   const sent = lessons.sent + payments.sent;
   const failed = lessons.failed + payments.failed;

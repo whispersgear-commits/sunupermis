@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useSheet } from "./sheet";
 
 /**
  * Formulaire relié à une action serveur. L'action rend `{ error }` ou
@@ -37,14 +38,17 @@ export function ActionForm({
   const ref = useRef<HTMLFormElement>(null);
   // Les options sont lues au moment du succès, pas à chaque rendu : l'effet
   // ne doit se déclencher qu'à l'arrivée d'une nouvelle réponse du serveur.
-  const options = useRef({ resetOnSuccess, onSuccess });
-  options.current = { resetOnSuccess, onSuccess };
+  // Dans un panneau, un succès le referme.
+  const sheet = useSheet();
+  const options = useRef({ resetOnSuccess, onSuccess, sheet });
+  options.current = { resetOnSuccess, onSuccess, sheet };
 
   useEffect(() => {
     if (state.success) {
       toast.success(state.success);
       if (options.current.resetOnSuccess) ref.current?.reset();
       options.current.onSuccess?.();
+      options.current.sheet?.close();
     }
   }, [state]);
 

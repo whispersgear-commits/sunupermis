@@ -58,3 +58,34 @@ export function dayMonth(iso: string): string {
 export function groupDigits(n: number): string {
   return money(n).replace(" FCFA", "");
 }
+
+const MONTHS_SHORT = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+const WEEKDAYS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+
+/** « 2026-10-09 » ⟶ « 9 oct. ». */
+export function dayShort(iso: string): string {
+  return `${Number(iso.slice(8, 10))} ${MONTHS_SHORT[Number(iso.slice(5, 7)) - 1]}`;
+}
+
+/** « 2026-10-09 » ⟶ « jeudi ». Calculé en UTC (= heure du Sénégal). */
+export function weekday(iso: string): string {
+  return WEEKDAYS[new Date(`${iso.slice(0, 10)}T00:00:00Z`).getUTCDay()];
+}
+
+/** « 2026-10-09 » ⟶ « jeudi 9 octobre ». */
+export function longDay(iso: string): string {
+  return `${weekday(iso)} ${dayMonth(iso)}`;
+}
+
+/** Décale une date AAAA-MM-JJ de `n` jours. */
+export function addDaysIso(iso: string, n: number): string {
+  const d = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Lundi de la semaine d'une date AAAA-MM-JJ. */
+export function mondayOf(iso: string): string {
+  const dow = new Date(`${iso.slice(0, 10)}T00:00:00Z`).getUTCDay();
+  return addDaysIso(iso, dow === 0 ? -6 : 1 - dow);
+}

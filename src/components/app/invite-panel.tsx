@@ -4,33 +4,54 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, Copy, MessageCircle } from "lucide-react";
 import { ActionForm, Submit } from "@/components/ui/form";
-import { Input, Select } from "@/components/ui/fields";
+import { Field, Input, Select } from "@/components/ui/fields";
 import { createInvitation } from "@/app/app/actions";
 
 export function InviteForm({ instructors }: { instructors: { id: string; full_name: string }[] }) {
   const [role, setRole] = useState("secretary");
   return (
-    <ActionForm action={createInvitation} resetOnSuccess className="grid gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
-      <Input name="label" placeholder="Nom de la personne" required aria-label="Nom de la personne invitée" />
-      <Select name="role" value={role} onChange={(e) => setRole(e.target.value)} aria-label="Rôle">
-        <option value="secretary">Secrétaire</option>
-        <option value="instructor">Moniteur</option>
-      </Select>
+    <ActionForm action={createInvitation} resetOnSuccess className="space-y-4">
+      <Field label="Nom de la personne">
+        <Input name="label" placeholder="Ex. Ndeye Fall" required autoFocus />
+      </Field>
+      <div>
+        <span className="mb-1.5 block text-sm font-semibold">Rôle</span>
+        <input type="hidden" name="role" value={role} />
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { value: "secretary", label: "Secrétaire", hint: "Élèves, paiements, planning" },
+            { value: "instructor", label: "Moniteur", hint: "Ses leçons, sans l'argent" },
+          ].map((r) => (
+            <button
+              key={r.value}
+              type="button"
+              onClick={() => setRole(r.value)}
+              aria-pressed={role === r.value}
+              className={`rounded-2xl border p-3 text-left transition ${role === r.value ? "border-brand-600 bg-brand-50 dark:bg-brand-900/40" : "border-line hover:border-brand-400"}`}
+            >
+              <span className="block font-bold">{r.label}</span>
+              <span className="block text-xs text-muted">{r.hint}</span>
+            </button>
+          ))}
+        </div>
+      </div>
       <AnimatePresence initial={false}>
         {role === "instructor" && (
-          <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: "auto" }} exit={{ opacity: 0, width: 0 }} className="overflow-hidden">
-            <Select name="instructor_id" defaultValue={instructors[0]?.id ?? ""} aria-label="Fiche moniteur">
-              <option value="">Sans fiche moniteur</option>
-              {instructors.map((i) => (
-                <option key={i.id} value={i.id}>
-                  {i.full_name}
-                </option>
-              ))}
-            </Select>
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+            <Field label="Fiche moniteur" hint="Pour qu'il voie seulement ses propres leçons">
+              <Select name="instructor_id" defaultValue={instructors[0]?.id ?? ""}>
+                <option value="">Sans fiche moniteur</option>
+                {instructors.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    {i.full_name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
           </motion.div>
         )}
       </AnimatePresence>
-      <Submit>Créer le lien</Submit>
+      <Submit className="w-full">Créer le lien d'invitation</Submit>
     </ActionForm>
   );
 }

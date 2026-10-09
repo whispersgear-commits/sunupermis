@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ActionForm, Submit, type FormState } from "@/components/ui/form";
 import { Field, Input, Select, Textarea } from "@/components/ui/fields";
-import { dayMonth, money, todayIso } from "@/lib/format";
+import { dayMonth, groupDigits, money, todayIso } from "@/lib/format";
 
 /**
  * Inscription d'un élève. L'échéancier se dessine en direct pendant qu'on
@@ -12,7 +12,7 @@ import { dayMonth, money, todayIso } from "@/lib/format";
  * va payer, et quand, avant d'enregistrer.
  */
 export function StudentForm({ action }: { action: (s: FormState, fd: FormData) => Promise<FormState> }) {
-  const [price, setPrice] = useState("150000");
+  const [price, setPrice] = useState("150 000");
   const [parts, setParts] = useState("3");
   const [first, setFirst] = useState(todayIso());
 
@@ -63,7 +63,10 @@ export function StudentForm({ action }: { action: (s: FormState, fd: FormData) =
           <h2 className="mb-4 font-bold">Forfait et paiement</h2>
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Prix du forfait (FCFA)">
-              <Input name="package_price" inputMode="numeric" value={price} onChange={(e) => setPrice(e.target.value)} />
+              <Input name="package_price" inputMode="numeric" value={price} onChange={(e) => {
+                  const digits = e.target.value.replace(/\D/g, "");
+                  setPrice(digits ? groupDigits(Number(digits)) : "");
+                }} />
             </Field>
             <Field label="Nombre de tranches">
               <Select name="installments" value={parts} onChange={(e) => setParts(e.target.value)}>

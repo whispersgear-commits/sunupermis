@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "motion/react";
 import { ActionForm, Submit } from "@/components/ui/form";
-import { Input, Select } from "@/components/ui/fields";
+import { Field, Input, Select } from "@/components/ui/fields";
+import { cn } from "@/lib/utils";
 import { addExam, addPayment } from "@/app/app/actions";
-import { todayIso } from "@/lib/format";
+import { groupDigits, todayIso } from "@/lib/format";
 
 /** Anneau de progression des leçons, qui se remplit à l'ouverture. */
 export function ProgressRing({ value, total }: { value: number; total: number }) {
@@ -31,19 +33,94 @@ export function ProgressRing({ value, total }: { value: number; total: number })
   );
 }
 
-export function PaymentForm({ studentId, suggested }: { studentId: string; suggested: number }) {
+const METHODS = [
+  { value: "wave", label: "Wave" },
+  { value: "orange_money", label: "Orange Money" },
+  { value: "cash", label: "Espèces" },
+  { value: "other", label: "Autre" },
+];
+
+/**
+ * Encaissement. Sur la fiche d'un élève, `studentId` est fixé ; depuis la page
+ * Paiements, `students` permet de choisir l'élève.
+ */
+export function PaymentForm({
+  studentId,
+  suggested = 0,
+  students,
+}: {
+  studentId?: string;
+  suggested?: number;
+  students?: { id: string; label: string; due: number }[];
+}) {
+  const [method, setMethod] = useState("wave");
+  const [amount, setAmount] = useState(suggested > 0 ? groupDigits(suggested) : "");
   return (
-    <ActionForm action={addPayment} resetOnSuccess className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_auto]">
-      <input type="hidden" name="student_id" value={studentId} />
-      <Input name="amount" inputMode="numeric" defaultValue={suggested > 0 ? suggested : ""} placeholder="Montant" required aria-label="Montant" />
-      <Select name="method" defaultValue="wave" aria-label="Moyen de paiement">
-        <option value="wave">Wave</option>
-        <option value="orange_money">Orange Money</option>
-        <option value="cash">Espèces</option>
-        <option value="other">Autre</option>
-      </Select>
-      <Submit className="col-span-2 sm:col-span-1">Encaisser</Submit>
-      <Input name="reference" placeholder="Référence de la transaction (facultatif)" className="col-span-2 sm:col-span-3" aria-label="Référence" />
+    <ActionForm action={addPayment} resetOnSuccess onSuccess={() => setAmount("")} className="space-y-4">
+      {studentId ? (
+        <input type="hidden" name="student_id" value={studentId} />
+      ) : (
+        <Field label="Élève">
+          <Select
+            name="student_id"
+            required
+            defaultValue=""
+            onChange={(e) => {
+              const due = students?.find((s) => s.id === e.target.value)?.due ?? 0;
+              setAmount(due > 0 ? groupDigits(due) : "");
+            }}
+          >
+            <option value="" disabled>
+              Choisir un élève…
+            </option>
+            {students?.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.label}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      )}
+      <Field label="Montant (FCFA)">
+        <Input
+          name="amount"
+          inputMode="numeric"
+          value={amount}
+          onChange={(e) => {
+            const digits = e.target.value.replace(/\D/g, "");
+            setAmount(digits ? groupDigits(Number(digits)) : "");
+          }}
+          placeholder="0"
+          required
+          className="h-14 text-2xl font-extrabold tracking-tight"
+        />
+      </Field>
+      <div>
+        <span className="mb-1.5 block text-sm font-semibold">Moyen de paiement</span>
+        <input type="hidden" name="method" value={method} />
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {METHODS.map((m) => (
+            <button
+              key={m.value}
+              type="button"
+              onClick={() => setMethod(m.value)}
+              aria-pressed={method === m.value}
+              className={cn(
+                "h-10 rounded-xl border text-sm font-semibold transition",
+                method === m.value ? "border-brand-600 bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200" : "border-line text-muted hover:border-brand-400",
+              )}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      {method !== "cash" && (
+        <Field label="Référence de la transaction" hint="Facultatif : le numéro reçu par SMS">
+          <Input name="reference" placeholder="Ex. TX123456" />
+        </Field>
+      )}
+      <Submit className="w-full">Encaisser{amount ? ` ${amount} FCFA` : ""}</Submit>
     </ActionForm>
   );
 }

@@ -1,3 +1,9 @@
 [build]
   command = "npm run build"
   publish = ".next"
+
+# Adaptateur Next.js de Netlify : il transforme les pages dynamiques, les
+# actions serveur et le middleware en fonctions. Sans lui, seules les pages
+# statiques seraient servies.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+/*
+ * Identité SunuPermis : le vert de la route qui s'ouvre, le jaune du
+ * marquage au sol, l'asphalte pour le texte. Des jetons plutôt que des
+ * couleurs en dur, pour un mode sombre sans dupliquer une classe.
+ */
+@theme {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d1fae5;
+  --color-brand-200: #a7f3d0;
+  --color-brand-400: #34d399;
+  --color-brand-500: #10b981;
+  --color-brand-600: #0b8a5a;
+  --color-brand-700: #087049;
+  --color-brand-800: #065a3b;
+  --color-brand-900: #053f2a;
+
+  --color-lane: #facc15;
+  --color-lane-soft: #fef9c3;
+
+  --color-asphalt: #0f172a;
+  --color-asphalt-2: #1e293b;
+}
+
+:root {
+  --bg: #f7f8f6;
+  --surface: #ffffff;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --line: #e5e7eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1220;
+    --surface: #111a2b;
+    --ink: #e5e7eb;
+    --muted: #94a3b8;
+    --line: #1f2a3d;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Marquage au sol animé : des tirets jaunes qui défilent. */
+@keyframes lane {
+  from { background-position-x: 0; }
+  to { background-position-x: -96px; }
+}
+.lane-dashes {
+  background-image: linear-gradient(90deg, var(--color-lane) 0 48px, transparent 48px 96px);
+  background-size: 96px 6px;
+  background-repeat: repeat-x;
+  animation: lane 0.9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .lane-dashes { animation: none; }
+}

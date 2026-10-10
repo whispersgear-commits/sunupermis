@@ -22,6 +22,7 @@ export interface Student {
   status: "active" | "code_ok" | "licensed" | "dropped";
   notes: string | null;
   created_at: string;
+  file_no: number | null;
 }
 
 export interface Balance {
@@ -66,6 +67,11 @@ export interface Payment {
   method: "cash" | "wave" | "orange_money" | "other";
   reference: string | null;
   paid_at: string;
+  receipt_no: number | null;
+  receipt_token: string;
+  created_by: string | null;
+  cancelled_at: string | null;
+  cancel_reason: string | null;
 }
 
 export interface Installment {

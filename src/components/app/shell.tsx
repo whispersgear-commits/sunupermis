@@ -116,7 +116,7 @@ export function Shell({
     <div className="min-h-screen lg:flex">
       <NavProgress />
       {/* ------------------------------------------------ Ordinateur */}
-      <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-surface p-5 lg:flex">
+      <aside className="sticky top-0 hidden h-screen print:!hidden w-64 shrink-0 flex-col border-r border-line bg-surface p-5 lg:flex">
         <Logo href="/app" />
         <nav className="mt-10 space-y-1">
           {items.map((item) => (
@@ -153,7 +153,7 @@ export function Shell({
       </aside>
 
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-30 hidden border-b border-line bg-bg/80 backdrop-blur-xl lg:block">
+        <header className="sticky top-0 z-30 hidden border-b print:!hidden border-line bg-bg/80 backdrop-blur-xl lg:block">
           <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-3">
             <form action="/app/eleves" className="relative max-w-md flex-1">
               <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -177,7 +177,7 @@ export function Shell({
         </header>
 
         {/* ------------------------------------------------ Téléphone */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-line bg-surface/85 px-4 py-2.5 backdrop-blur-xl lg:hidden">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 print:hidden border-b border-line bg-surface/85 px-4 py-2.5 backdrop-blur-xl lg:hidden">
           <Logo href="/app" />
           <div className="flex items-center gap-1">
             <Link href="/app/eleves" className="grid h-10 w-10 place-items-center rounded-xl text-muted hover:bg-bg" aria-label="Rechercher un élève">
@@ -209,13 +209,13 @@ export function Shell({
           </div>
         </header>
 
-        <main className="pb-28 lg:pb-0">
-          <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:py-8">{children}</div>
+        <main className="pb-28 lg:pb-0 print:p-0">
+          <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:py-8 print:max-w-none print:p-0">{children}</div>
         </main>
       </div>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 grid border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 grid border-t print:hidden border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
         style={{ gridTemplateColumns: `repeat(${mobileRow.length}, minmax(0, 1fr))` }}
       >
         {mobileRow.map((item) =>

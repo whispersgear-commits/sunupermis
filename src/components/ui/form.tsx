@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Loader2 } from "lucide-react";
@@ -17,6 +18,8 @@ import { useSheet } from "./sheet";
 export interface FormState {
   error?: string;
   success?: string;
+  /** Suite proposée dans la notification (ex. « Voir le reçu »). */
+  link?: { label: string; href: string };
 }
 
 type Action = (state: FormState, fd: FormData) => Promise<FormState>;
@@ -35,6 +38,7 @@ export function ActionForm({
   onSuccess?: () => void;
 }) {
   const [state, formAction] = useActionState(action, {});
+  const router = useRouter();
   const ref = useRef<HTMLFormElement>(null);
   // Les options sont lues au moment du succès, pas à chaque rendu : l'effet
   // ne doit se déclencher qu'à l'arrivée d'une nouvelle réponse du serveur.
@@ -45,12 +49,13 @@ export function ActionForm({
 
   useEffect(() => {
     if (state.success) {
-      toast.success(state.success);
+      const link = state.link;
+      toast.success(state.success, link ? { duration: 10000, action: { label: link.label, onClick: () => router.push(link.href) } } : undefined);
       if (options.current.resetOnSuccess) ref.current?.reset();
       options.current.onSuccess?.();
       options.current.sheet?.close();
     }
-  }, [state]);
+  }, [state, router]);
 
   return (
     <form ref={ref} action={formAction} className={className}>

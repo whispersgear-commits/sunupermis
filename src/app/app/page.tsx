@@ -58,7 +58,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     lessonsBetween(tomorrow, addDaysIso(today, 2)).eq("status", "planned"),
     supabase.from("students").select("id, full_name, phone, status").neq("status", "dropped"),
     isStaff ? supabase.from("student_balances").select("*") : Promise.resolve({ data: [] }),
-    isStaff ? supabase.from("payments").select("amount").gte("paid_at", startOfMonth(new Date()).toISOString()) : Promise.resolve({ data: [] }),
+    isStaff ? supabase.from("payments").select("amount").is("cancelled_at", null).gte("paid_at", startOfMonth(new Date()).toISOString()) : Promise.resolve({ data: [] }),
     supabase
       .from("exams")
       .select("*, student:students(id, full_name)")

@@ -31,3 +31,12 @@ export function paymentReminder(student: string, school: string, amount: number)
 export function welcomeMessage(student: string, school: string) {
   return `Bienvenue ${first(student)} ! Votre inscription chez ${school} est confirmée. Nous vous enverrons ici vos rappels de leçons et d'échéances.`;
 }
+
+export function receiptMessage(student: string, school: string, receipt: string, amount: number, method: string, balance: number, verifyUrl: string) {
+  return (
+    `Bonjour ${first(student)}, nous confirmons la réception de votre paiement de ${money(amount)} (${method}).\n` +
+    `Reçu n° ${receipt}\n` +
+    `${balance > 0 ? `Reste à payer : ${money(balance)}` : "Votre forfait est entièrement payé. Merci !"}\n` +
+    `Vérifier le reçu : ${verifyUrl}\n— ${school}`
+  );
+}

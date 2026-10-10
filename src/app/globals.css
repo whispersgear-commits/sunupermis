@@ -77,3 +77,11 @@ body {
   html { scroll-behavior: auto; }
   .lane-dashes { animation: none; }
 }
+
+/* Impression des reçus, factures et arrêtés de caisse : fond blanc, texte
+   noir, marges de la feuille. */
+@media print {
+  @page { margin: 12mm; }
+  :root { --bg: #ffffff; --surface: #ffffff; --ink: #000000; --muted: #374151; --line: #d1d5db; }
+  body { background: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

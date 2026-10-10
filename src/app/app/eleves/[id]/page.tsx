@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { PendingButton } from "@/components/ui/pending-button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, ArrowLeft, CalendarPlus, GraduationCap, MessageCircle, Pencil, Phone, StickyNote, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CalendarPlus, ChevronRight, FileText, GraduationCap, MessageCircle, Pencil, Phone, StickyNote, Wallet } from "lucide-react";
+import { receiptLabel } from "@/lib/receipts";
 import { Avatar, Badge, Card, CardTitle, Empty, ProgressBar } from "@/components/app/ui";
 import { LessonRow, type LessonWithNames } from "@/components/app/lesson-row";
 import { ExamForm, PaymentForm, ProgressRing } from "@/components/app/student-panels";
@@ -278,19 +279,35 @@ export default async function ElevePage({ params, searchParams }: { params: Prom
             </Card>
           </div>
           <Card delay={0.1} className="h-fit">
-            <CardTitle title="Historique" action={<span className="text-sm font-bold text-brand-700">{money(paid)}</span>} />
+            <CardTitle
+              title="Reçus"
+              action={
+                <Link href={`/app/eleves/${s.id}/facture`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline">
+                  <FileText className="h-4 w-4" /> Facture
+                </Link>
+              }
+            />
             {paymentList.length ? (
               <ul className="divide-y divide-line">
                 {paymentList.map((p) => (
-                  <li key={p.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
-                    <span className="min-w-0">
-                      <span className="block font-semibold">{shortDate(p.paid_at)}</span>
-                      <span className="block truncate text-xs text-muted">
-                        {METHOD_LABEL[p.method]}
-                        {p.reference ? ` · ${p.reference}` : ""}
+                  <li key={p.id}>
+                    <Link href={`/app/paiements/${p.id}/recu`} className="flex items-center justify-between gap-3 px-5 py-3 text-sm transition hover:bg-bg">
+                      <span className="min-w-0">
+                        <span className="block font-semibold">
+                          <span className="font-mono text-xs text-muted">{receiptLabel(p.receipt_no, p.paid_at)}</span> · {shortDate(p.paid_at)}
+                        </span>
+                        <span className="block truncate text-xs text-muted">
+                          {METHOD_LABEL[p.method]}
+                          {p.reference ? ` · ${p.reference}` : ""}
+                          {p.cancelled_at ? ` · annulé : ${p.cancel_reason ?? ""}` : ""}
+                        </span>
                       </span>
-                    </span>
-                    <span className="font-bold text-brand-700">+{money(p.amount)}</span>
+                      <span className="flex shrink-0 items-center gap-2">
+                        {p.cancelled_at ? <Badge tone="bad">Annulé</Badge> : null}
+                        <span className={cn("font-bold", p.cancelled_at ? "text-muted line-through" : "text-brand-700")}>+{money(p.amount)}</span>
+                        <ChevronRight className="h-4 w-4 text-muted" />
+                      </span>
+                    </Link>
                   </li>
                 ))}
               </ul>

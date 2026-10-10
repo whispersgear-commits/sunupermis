@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertTriangle, CalendarClock, Download, MessageCircle, Plus, Send, Wallet } from "lucide-react";
+import { AlertTriangle, CalendarClock, ChevronLeft, ChevronRight, Download, MessageCircle, Plus, Send, Wallet } from "lucide-react";
+import { PrintButton } from "@/components/documents/print-button";
 import { Avatar, Card, Empty, PageHeader, Stat } from "@/components/app/ui";
 import { ParamSelect, SearchBox, Tabs } from "@/components/app/filters";
 import { PaymentForm } from "@/components/app/student-panels";
+import { METHOD_COLOR, PaymentRow } from "@/components/app/payment-row";
 import { Sheet } from "@/components/ui/sheet";
 import { ActionForm, Submit } from "@/components/ui/form";
 import { createClient } from "@/lib/supabase/server";
@@ -20,8 +22,7 @@ import { sendRemindersNow } from "../actions";
 
 export const metadata: Metadata = { title: "Paiements" };
 
-type Params = { onglet?: string; periode?: string; methode?: string; q?: string; encaisser?: string };
-const METHOD_COLOR: Record<Payment["method"], string> = { wave: "bg-sky-500", orange_money: "bg-orange-500", cash: "bg-brand-500", other: "bg-slate-400" };
+type Params = { onglet?: string; periode?: string; methode?: string; q?: string; encaisser?: string; jour?: string };
 
 export default async function PaiementsPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
@@ -73,22 +74,54 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
 
   // Encaissements de la période, filtrés
   const allPayments = (payments ?? []) as (Payment & { student: { id: string; full_name: string; phone: string } | null })[];
-  const periodTotal = allPayments.reduce((sum, p) => sum + p.amount, 0);
+  // Les paiements annulés restent affichés, barrés, mais ne comptent pas.
+  const valid = allPayments.filter((p) => !p.cancelled_at);
+  const periodTotal = valid.reduce((sum, p) => sum + p.amount, 0);
   const byMethod = (Object.keys(METHOD_LABEL) as Payment["method"][])
-    .map((m) => ({ m, total: allPayments.filter((p) => p.method === m).reduce((sum, p) => sum + p.amount, 0) }))
+    .map((m) => ({ m, total: valid.filter((p) => p.method === m).reduce((sum, p) => sum + p.amount, 0) }))
     .filter((x) => x.total > 0);
   const list = allPayments.filter((p) => (!params.methode || p.method === params.methode) && matches(p.student?.full_name));
   const days: { day: string; items: typeof list; total: number }[] = [];
   for (const p of list) {
     const d = p.paid_at.slice(0, 10);
     const last = days[days.length - 1];
+    const amount = p.cancelled_at ? 0 : p.amount;
     if (last?.day === d) {
       last.items.push(p);
-      last.total += p.amount;
-    } else days.push({ day: d, items: [p], total: p.amount });
+      last.total += amount;
+    } else days.push({ day: d, items: [p], total: amount });
   }
 
-  const tab = params.onglet === "retards" || params.onglet === "a-venir" ? params.onglet : "encaissements";
+  const tab = params.onglet === "retards" || params.onglet === "a-venir" || params.onglet === "caisse" ? params.onglet : "encaissements";
+
+  // Caisse du jour : ce que chacun a encaissé, par moyen de paiement.
+  const cashDay = /^\d{4}-\d{2}-\d{2}$/.test(params.jour ?? "") && params.jour! <= today ? params.jour! : today;
+  const [{ data: dayPayments }, { data: members }] =
+    tab === "caisse"
+      ? await Promise.all([
+          supabase
+            .from("payments")
+            .select("*, student:students(id, full_name, phone)")
+            .gte("paid_at", `${cashDay}T00:00:00Z`)
+            .lt("paid_at", `${addDaysIso(cashDay, 1)}T00:00:00Z`)
+            .order("paid_at"),
+          supabase.from("memberships").select("user_id, full_name, email"),
+        ])
+      : [{ data: [] }, { data: [] }];
+  const memberName = new Map(((members ?? []) as { user_id: string; full_name: string | null; email: string | null }[]).map((m) => [m.user_id, m.full_name ?? m.email ?? "—"]));
+  const dayList = (dayPayments ?? []) as (Payment & { student: { id: string; full_name: string; phone: string } | null })[];
+  const dayValid = dayList.filter((p) => !p.cancelled_at);
+  const dayTotal = dayValid.reduce((sum, p) => sum + p.amount, 0);
+  const dayByMethod = (Object.keys(METHOD_LABEL) as Payment["method"][]).map((m) => ({ m, total: dayValid.filter((p) => p.method === m).reduce((sum, p) => sum + p.amount, 0), n: dayValid.filter((p) => p.method === m).length }));
+  const byPerson = [...new Set(dayValid.map((p) => p.created_by ?? ""))].map((uid) => {
+    const mine = dayValid.filter((p) => (p.created_by ?? "") === uid);
+    return {
+      name: memberName.get(uid) ?? "Inconnu",
+      n: mine.length,
+      cash: mine.filter((p) => p.method === "cash").reduce((sum, p) => sum + p.amount, 0),
+      other: mine.filter((p) => p.method !== "cash").reduce((sum, p) => sum + p.amount, 0),
+    };
+  });
   const current = { ...params, encaisser: undefined };
   const href = (changes: Record<string, string | null>) => withParams("/app/paiements", current, changes);
   const overdueShown = overdue.filter((b) => matches(b.s?.full_name));
@@ -102,6 +135,7 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
 
   return (
     <>
+      <div className="print:hidden">
       <PageHeader
         title="Paiements"
         description="Encaissements, retards et échéances."
@@ -126,15 +160,17 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
-        <Stat label={`Encaissé · ${range.label.toLowerCase()}`} value={periodTotal} format="money" icon={<Wallet className="h-4 w-4" />} tone="brand" hint={`${allPayments.length} paiement${allPayments.length > 1 ? "s" : ""}`} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 print:hidden">
+        <Stat label={`Encaissé · ${range.label.toLowerCase()}`} value={periodTotal} format="money" icon={<Wallet className="h-4 w-4" />} tone="brand" hint={`${valid.length} paiement${valid.length > 1 ? "s" : ""}`} />
         <Stat label="En retard" value={lateTotal} format="money" icon={<AlertTriangle className="h-4 w-4" />} tone="bad" hint={`${overdue.length} élève${overdue.length > 1 ? "s" : ""}`} delay={0.05} href={href({ onglet: "retards" })} />
         <div className="col-span-2 lg:col-span-1">
           <Stat label="À encaisser sous 30 jours" value={upcomingTotal} format="money" icon={<CalendarClock className="h-4 w-4" />} hint={`${upcoming.length} échéance${upcoming.length > 1 ? "s" : ""}`} delay={0.1} href={href({ onglet: "a-venir" })} />
         </div>
       </div>
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-6 space-y-3 print:hidden">
         <Tabs
           id="paiements-onglet"
           variant="underline"
@@ -142,6 +178,7 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
             { href: href({ onglet: null }), label: "Encaissements", active: tab === "encaissements" },
             { href: href({ onglet: "retards" }), label: "En retard", count: overdue.length, tone: "bad", active: tab === "retards" },
             { href: href({ onglet: "a-venir" }), label: "À venir", count: upcoming.length, active: tab === "a-venir" },
+            { href: href({ onglet: "caisse", jour: null }), label: "Caisse du jour", active: tab === "caisse" },
           ]}
         />
         <div className="flex flex-col gap-2 sm:flex-row">
@@ -167,23 +204,8 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
                   </div>
                   <ul className="divide-y divide-line">
                     {d.items.map((p) => (
-                      <li key={p.id} className="flex items-center gap-3 px-5 py-3">
-                        <Avatar name={p.student?.full_name ?? "?"} size="sm" />
-                        <div className="min-w-0 flex-1">
-                          {p.student ? (
-                            <Link href={`/app/eleves/${p.student.id}?onglet=paiements`} className="block truncate font-semibold hover:text-brand-700">
-                              {p.student.full_name}
-                            </Link>
-                          ) : (
-                            <p className="font-semibold">Élève supprimé</p>
-                          )}
-                          <p className="flex items-center gap-1.5 truncate text-xs text-muted">
-                            <span className={cn("h-2 w-2 shrink-0 rounded-full", METHOD_COLOR[p.method])} />
-                            {METHOD_LABEL[p.method]} · {p.paid_at.slice(11, 16)}
-                            {p.reference ? ` · ${p.reference}` : ""}
-                          </p>
-                        </div>
-                        <span className="shrink-0 font-bold text-brand-700 tabular-nums">+{money(p.amount)}</span>
+                      <li key={p.id}>
+                        <PaymentRow p={p} />
                       </li>
                     ))}
                   </ul>
@@ -270,6 +292,108 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
         </Card>
       )}
 
+      {tab === "caisse" && (
+        <div className="mt-5 space-y-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
+            <div className="flex items-center gap-1 rounded-2xl border border-line bg-surface p-1">
+              <Link href={href({ onglet: "caisse", jour: addDaysIso(cashDay, -1) })} scroll={false} className="grid h-9 w-9 place-items-center rounded-xl hover:bg-bg" aria-label="Jour précédent">
+                <ChevronLeft className="h-4 w-4" />
+              </Link>
+              <Link href={href({ onglet: "caisse", jour: null })} scroll={false} className="rounded-xl px-3 py-2 text-sm font-semibold first-letter:uppercase hover:bg-bg">
+                {cashDay === today ? "Aujourd'hui" : longDay(cashDay)}
+              </Link>
+              {cashDay < today && (
+                <Link href={href({ onglet: "caisse", jour: addDaysIso(cashDay, 1) })} scroll={false} className="grid h-9 w-9 place-items-center rounded-xl hover:bg-bg" aria-label="Jour suivant">
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              )}
+            </div>
+            <PrintButton label="Imprimer l'arrêté de caisse" />
+          </div>
+
+          <div className="hidden print:block">
+            <p className="text-xl font-extrabold">{ctx.school.name}</p>
+            <p className="text-lg font-bold first-letter:uppercase">Arrêté de caisse · {longDay(cashDay)} {cashDay.slice(0, 4)}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="col-span-2 rounded-3xl bg-asphalt p-5 text-white lg:col-span-1">
+              <p className="text-xs font-semibold text-brand-200">Espèces à remettre</p>
+              <p className="mt-2 text-2xl font-extrabold tabular-nums">{money(dayByMethod.find((x) => x.m === "cash")!.total)}</p>
+              <p className="mt-0.5 text-xs text-slate-400">à compter dans le tiroir-caisse</p>
+            </div>
+            {dayByMethod
+              .filter((x) => x.m !== "cash")
+              .map((x) => (
+                <div key={x.m} className="rounded-3xl border border-line bg-surface p-5">
+                  <p className="flex items-center gap-2 text-xs font-semibold text-muted">
+                    <span className={cn("h-2 w-2 rounded-full", METHOD_COLOR[x.m])} /> {METHOD_LABEL[x.m]}
+                  </p>
+                  <p className="mt-2 text-xl font-extrabold tabular-nums">{money(x.total)}</p>
+                  <p className="text-xs text-muted">
+                    {x.n} paiement{x.n > 1 ? "s" : ""}
+                  </p>
+                </div>
+              ))}
+          </div>
+
+          <div className="grid gap-5 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <div className="flex items-center justify-between border-b border-line px-5 py-4">
+                <h2 className="font-bold">Reçus émis</h2>
+                <span className="font-extrabold text-brand-700 tabular-nums">{money(dayTotal)}</span>
+              </div>
+              {dayList.length ? (
+                <ul className="divide-y divide-line">
+                  {dayList.map((p) => (
+                    <li key={p.id}>
+                      <PaymentRow p={p} by={memberName.get(p.created_by ?? "")} />
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <Empty title="Aucun encaissement ce jour-là" />
+              )}
+            </Card>
+            <Card className="h-fit" delay={0.05}>
+              <div className="border-b border-line px-5 py-4">
+                <h2 className="font-bold">Par personne</h2>
+                <p className="text-xs text-muted">Qui a encaissé quoi : chaque reçu porte le nom de la personne connectée.</p>
+              </div>
+              {byPerson.length ? (
+                <ul className="divide-y divide-line">
+                  {byPerson.map((x) => (
+                    <li key={x.name} className="px-5 py-3 text-sm">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="flex items-center gap-2 font-semibold">
+                          <Avatar name={x.name} size="sm" /> {x.name}
+                        </span>
+                        <span className="font-extrabold tabular-nums">{money(x.cash + x.other)}</span>
+                      </div>
+                      <p className="mt-1 pl-11 text-xs text-muted">
+                        {x.n} reçu{x.n > 1 ? "s" : ""} · espèces {money(x.cash)} · mobile {money(x.other)}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="px-5 py-6 text-sm text-muted">—</p>
+              )}
+            </Card>
+          </div>
+          <div className="hidden pt-10 print:grid print:grid-cols-2 print:gap-10">
+            <div className="text-sm">
+              Remis par
+              <div className="mt-10 border-b border-dashed border-line" />
+            </div>
+            <div className="text-sm">
+              Reçu par
+              <div className="mt-10 border-b border-dashed border-line" />
+            </div>
+          </div>
+        </div>
+      )}
+
       {tab === "a-venir" && (
         <Card className="mt-5">
           {upcomingShown.length ? (
@@ -302,7 +426,7 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
       {tab === "retards" && overdue.length > 0 && <p className="mt-3 text-center text-xs text-muted">Total en retard : {money(lateTotal)}</p>}
       {tab === "encaissements" && list.length > 0 && (
         <p className="mt-3 text-center text-xs text-muted">
-          {list.length} paiement{list.length > 1 ? "s" : ""} · {money(list.reduce((s, p) => s + p.amount, 0))}
+          {list.length} paiement{list.length > 1 ? "s" : ""} · {money(list.filter((p) => !p.cancelled_at).reduce((s, p) => s + p.amount, 0))}
         </p>
       )}
     </>

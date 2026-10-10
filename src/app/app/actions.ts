@@ -134,17 +134,36 @@ export async function addPayment(_s: FormState, fd: FormData): Promise<FormState
   if (!["cash", "wave", "orange_money", "other"].includes(method)) return { error: "Moyen de paiement invalide." };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("payments").insert({
-    school_id: ctx.school.id,
-    student_id: text(fd, "student_id"),
-    amount,
-    method,
-    reference: text(fd, "reference") || null,
-    created_by: ctx.userId,
-  });
-  if (error) return { error: "Paiement non enregistré." };
+  // Numéro de reçu, date et encaisseur sont fixés par la base.
+  const { data, error } = await supabase
+    .from("payments")
+    .insert({
+      school_id: ctx.school.id,
+      student_id: text(fd, "student_id"),
+      amount,
+      method,
+      reference: text(fd, "reference") || null,
+    })
+    .select("id, receipt_no")
+    .single();
+  if (error || !data) return { error: "Paiement non enregistré." };
   revalidatePath("/app", "layout");
-  return { success: "Paiement enregistré." };
+  return {
+    success: `Paiement enregistré · reçu n° ${String(data.receipt_no).padStart(4, "0")}`,
+    link: { label: "Voir le reçu", href: `/app/paiements/${data.id}/recu` },
+  };
+}
+
+/** Annulation d'un paiement : propriétaire seulement, motif obligatoire, trace conservée. */
+export async function cancelPayment(_s: FormState, fd: FormData): Promise<FormState> {
+  await requireOwner();
+  const reason = text(fd, "reason");
+  if (reason.length < 3) return { error: "Indiquez le motif de l'annulation." };
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("cancel_payment", { payment: text(fd, "payment_id"), reason });
+  if (error) return { error: error.message.includes("déjà") ? "Ce paiement est déjà annulé." : "Annulation impossible." };
+  revalidatePath("/app", "layout");
+  return { success: "Paiement annulé. Le reçu porte désormais la mention « ANNULÉ »." };
 }
 
 export async function addExam(_s: FormState, fd: FormData): Promise<FormState> {

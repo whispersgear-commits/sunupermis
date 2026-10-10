@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PendingButton } from "@/components/ui/pending-button";
 import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import {
@@ -21,6 +22,8 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Sheet } from "@/components/ui/sheet";
+import { LinkPending } from "@/components/ui/link-pending";
+import { NavProgress } from "@/components/ui/nav-progress";
 import { inputClass } from "@/components/ui/fields";
 import { cn } from "@/lib/utils";
 import { ROLE_LABEL, type Role } from "@/lib/types";
@@ -111,6 +114,7 @@ export function Shell({
 
   return (
     <div className="min-h-screen lg:flex">
+      <NavProgress />
       {/* ------------------------------------------------ Ordinateur */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-surface p-5 lg:flex">
         <Logo href="/app" />
@@ -126,6 +130,7 @@ export function Shell({
               )}
               <item.icon className={cn("relative h-5 w-5", active(item) ? "text-brand-600" : "text-muted")} />
               <span className={cn("relative", active(item) ? "text-brand-700 dark:text-brand-200" : "text-muted")}>{item.label}</span>
+              <LinkPending className="relative ml-auto text-brand-600" />
             </Link>
           ))}
         </nav>
@@ -139,9 +144,9 @@ export function Shell({
               <p className="truncate text-xs text-muted">{ROLE_LABEL[role]}</p>
             </div>
             <form action={signOut}>
-              <button className="grid h-9 w-9 place-items-center rounded-xl text-muted transition hover:bg-red-50 hover:text-red-600" aria-label="Déconnexion" title="Déconnexion">
+              <PendingButton className="grid h-9 w-9 place-items-center rounded-xl text-muted transition hover:bg-red-50 hover:text-red-600" aria-label="Déconnexion" title="Déconnexion">
                 <LogOut className="h-4 w-4" />
-              </button>
+              </PendingButton>
             </form>
           </div>
         </div>
@@ -195,9 +200,9 @@ export function Shell({
                     ))}
                 </ul>
                 <form action={signOut}>
-                  <button className="flex w-full items-center justify-center gap-2 rounded-2xl border border-line py-3.5 font-semibold text-red-600 transition hover:bg-red-50">
+                  <PendingButton className="flex w-full items-center justify-center gap-2 rounded-2xl border border-line py-3.5 font-semibold text-red-600 transition hover:bg-red-50">
                     <LogOut className="h-4 w-4" /> Se déconnecter
-                  </button>
+                  </PendingButton>
                 </form>
               </div>
             </Sheet>
@@ -236,6 +241,7 @@ export function Shell({
               )}
               <item.icon className={cn("h-5 w-5", active(item) ? "text-brand-600" : "text-muted")} />
               <span className={active(item) ? "text-brand-700 dark:text-brand-200" : "text-muted"}>{item.label}</span>
+              <LinkPending className="absolute right-1/2 top-2 translate-x-4 text-brand-600" />
             </Link>
           ),
         )}

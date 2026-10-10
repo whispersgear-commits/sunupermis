@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { Ban, Car, Check, X } from "lucide-react";
-import { markLesson } from "@/app/app/actions";
-import { LESSON_STATUS_LABEL, type Lesson } from "@/lib/types";
+import { Car } from "lucide-react";
+import type { Lesson } from "@/lib/types";
 import { dayShort } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { Badge } from "./ui";
+import { LessonActions } from "./lesson-actions";
 
 export interface LessonWithNames extends Lesson {
   student: { id: string; full_name: string; phone: string } | null;
@@ -12,7 +11,6 @@ export interface LessonWithNames extends Lesson {
   vehicle: { label: string } | null;
 }
 
-const TONE = { planned: "info", done: "good", missed: "bad", cancelled: "neutral" } as const;
 const BAR = { planned: "bg-sky-400", done: "bg-brand-500", missed: "bg-red-500", cancelled: "bg-slate-300" } as const;
 
 /**
@@ -73,42 +71,7 @@ export function LessonRow({
           </p>
         </div>
 
-        {lesson.status === "planned" ? (
-          <div className="flex shrink-0 items-center gap-1.5">
-            {overdue && <span className="mr-1 hidden text-xs font-bold text-amber-600 sm:inline">À pointer</span>}
-            <form action={markLesson} className="flex-1 sm:flex-none">
-              <input type="hidden" name="lesson_id" value={lesson.id} />
-              <input type="hidden" name="status" value="done" />
-              <button className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-xl bg-brand-600 px-3 text-xs font-bold text-white transition hover:bg-brand-700 active:scale-95">
-                <Check className="h-3.5 w-3.5" /> Faite
-              </button>
-            </form>
-            <form action={markLesson} className="flex-1 sm:flex-none">
-              <input type="hidden" name="lesson_id" value={lesson.id} />
-              <input type="hidden" name="status" value="missed" />
-              <button className="inline-flex h-9 w-full items-center justify-center gap-1 rounded-xl border border-line bg-surface px-3 text-xs font-bold text-muted transition hover:border-red-300 hover:text-red-600 active:scale-95">
-                <X className="h-3.5 w-3.5" /> Absent
-              </button>
-            </form>
-            {canCancel && (
-              <form action={markLesson}>
-                <input type="hidden" name="lesson_id" value={lesson.id} />
-                <input type="hidden" name="status" value="cancelled" />
-                <button
-                  title="Annuler la leçon"
-                  aria-label="Annuler la leçon"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-line bg-surface text-muted transition hover:border-red-300 hover:text-red-600 active:scale-95"
-                >
-                  <Ban className="h-3.5 w-3.5" />
-                </button>
-              </form>
-            )}
-          </div>
-        ) : (
-          <div className="shrink-0">
-            <Badge tone={TONE[lesson.status]}>{LESSON_STATUS_LABEL[lesson.status]}</Badge>
-          </div>
-        )}
+        <LessonActions lessonId={lesson.id} status={lesson.status} canCancel={canCancel} overdue={overdue} />
       </div>
     </div>
   );

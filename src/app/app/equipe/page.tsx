@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PendingButton } from "@/components/ui/pending-button";
 import { Car, Plus, UserPlus } from "lucide-react";
 import { Avatar, Badge, Card, Empty, PageHeader } from "@/components/app/ui";
 import { InstructorForm, VehicleForm } from "@/components/app/team-forms";
@@ -24,7 +25,7 @@ function ToggleButton({ table, id, active }: { table: "instructors" | "vehicles"
       <input type="hidden" name="table" value={table} />
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="active" value={active ? "0" : "1"} />
-      <button className="rounded-lg border border-line px-2.5 py-1.5 text-xs font-semibold text-muted transition hover:border-brand-500 hover:text-brand-700">{active ? "Désactiver" : "Réactiver"}</button>
+      <PendingButton className="rounded-lg border border-line px-2.5 py-1.5 text-xs font-semibold text-muted transition hover:border-brand-500 hover:text-brand-700">{active ? "Désactiver" : "Réactiver"}</PendingButton>
     </form>
   );
 }
@@ -129,7 +130,7 @@ export default async function EquipePage({ searchParams }: { searchParams: Promi
                     {isOwner && m.user_id !== ctx.userId && (
                       <form action={removeMember}>
                         <input type="hidden" name="user_id" value={m.user_id} />
-                        <button className="text-xs font-semibold text-muted hover:text-red-600">Retirer</button>
+                        <PendingButton className="text-xs font-semibold text-muted hover:text-red-600">Retirer</PendingButton>
                       </form>
                     )}
                   </div>
@@ -161,7 +162,7 @@ export default async function EquipePage({ searchParams }: { searchParams: Promi
                         <InviteLinkActions url={`${origin}/rejoindre/${inv.token}`} label={inv.label} school={ctx.school.name} />
                         <form action={revokeInvitation}>
                           <input type="hidden" name="id" value={inv.id} />
-                          <button className="h-8 px-2 text-xs font-semibold text-muted hover:text-red-600">Annuler</button>
+                          <PendingButton className="h-8 px-2 text-xs font-semibold text-muted hover:text-red-600">Annuler</PendingButton>
                         </form>
                       </div>
                     </li>

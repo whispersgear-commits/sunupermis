@@ -20,24 +20,26 @@ export interface Context {
  */
 export const getContext = cache(async (): Promise<Context | "no-school" | null> => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  // Jeton vérifié sur place (voir le middleware) : une seule requête réseau,
+  // celle des droits ci-dessous.
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims?.sub) return null;
 
   const { data: membership } = await supabase
     .from("memberships")
-    .select("role, instructor_id, school:schools(*)")
-    .eq("user_id", user.id)
+    .select("role, instructor_id, full_name, school:schools(*)")
+    .eq("user_id", claims.sub)
     .limit(1)
     .maybeSingle();
 
   if (!membership?.school) return "no-school";
 
+  const metadata = (claims.user_metadata ?? {}) as { full_name?: string };
   return {
-    userId: user.id,
-    email: user.email ?? "",
-    fullName: (user.user_metadata?.full_name as string) ?? "",
+    userId: claims.sub,
+    email: (claims.email as string | undefined) ?? "",
+    fullName: metadata.full_name ?? (membership.full_name as string | null) ?? "",
     role: membership.role as Role,
     instructorId: (membership.instructor_id as string | null) ?? null,
     school: membership.school as unknown as School,

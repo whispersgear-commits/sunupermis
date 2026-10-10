@@ -7,6 +7,7 @@ import { motion } from "motion/react";
 import { Loader2, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { inputClass } from "@/components/ui/fields";
+import { LinkPending } from "@/components/ui/link-pending";
 
 /**
  * Filtres portés par l'adresse de la page (`?q=…&statut=…`) : la page
@@ -90,13 +91,14 @@ export function ParamSelect({
   label: string;
   className?: string;
 }) {
-  const { set, params } = useParamSetter();
+  const { set, params, pending } = useParamSetter();
   return (
     <select
+      aria-busy={pending || undefined}
       aria-label={label}
       value={params.get(param) ?? ""}
       onChange={(e) => set({ [param]: e.target.value || null })}
-      className={cn(inputClass, "w-auto pr-8 font-semibold", className)}
+      className={cn(inputClass, "w-auto pr-8 font-semibold", pending && "animate-pulse", className)}
     >
       {options.map((o) => (
         <option key={o.value} value={o.value}>
@@ -142,6 +144,7 @@ export function Tabs({ items, id, variant = "pills", className }: { items: TabIt
                 <motion.span layoutId={`${id}-line`} className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-brand-600" transition={{ type: "spring", stiffness: 420, damping: 34 }} />
               ))}
             <span className="relative">{t.label}</span>
+            <LinkPending className="absolute right-1 top-1" />
             {t.count !== undefined && (
               <span
                 className={cn(

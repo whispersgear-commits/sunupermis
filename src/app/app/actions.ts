@@ -209,19 +209,21 @@ export async function createLesson(_s: FormState, fd: FormData): Promise<FormSta
   return { success: "Leçon planifiée." };
 }
 
-export async function markLesson(fd: FormData) {
+export async function markLesson(fd: FormData): Promise<{ error?: string }> {
   const ctx = await requireContext();
   const status = text(fd, "status");
   const supabase = await createClient();
+  let error: unknown = null;
   if (status === "cancelled") {
-    if (ctx.role === "instructor") return;
-    await supabase.from("lessons").update({ status }).eq("id", text(fd, "lesson_id")).eq("school_id", ctx.school.id);
+    if (ctx.role === "instructor") return { error: "Seul le bureau peut annuler une leçon." };
+    ({ error } = await supabase.from("lessons").update({ status }).eq("id", text(fd, "lesson_id")).eq("school_id", ctx.school.id));
   } else {
     // Passe par la fonction de la base : un moniteur ne peut marquer que ses
     // propres leçons, et seulement « faite » ou « absent ».
-    await supabase.rpc("mark_lesson", { lesson: text(fd, "lesson_id"), new_status: status });
+    ({ error } = await supabase.rpc("mark_lesson", { lesson: text(fd, "lesson_id"), new_status: status }));
   }
   revalidatePath("/app", "layout");
+  return error ? { error: "La leçon n'a pas pu être mise à jour. Réessayez." } : {};
 }
 
 // ---------------------------------------------------------------------------

@@ -27,11 +27,13 @@ export async function middleware(request: NextRequest) {
     },
   );
 
-  // `getUser()` vérifie le jeton auprès de Supabase ; `getSession()` se
-  // contenterait de lire un cookie qui peut être forgé.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // `getClaims()` vérifie la signature du jeton sur place, avec les clés
+  // publiques du projet gardées en mémoire : pas d'aller-retour vers
+  // Supabase à chaque clic (il rafraîchit aussi la session expirée). Un
+  // projet encore en clé secrète partagée retombe sur `getUser()`.
+  // `getSession()` seul ne suffirait pas : il lit un cookie qui peut être forgé.
+  const { data } = await supabase.auth.getClaims();
+  const user = data?.claims?.sub ? data.claims : null;
 
   const { pathname } = request.nextUrl;
   if (!user && pathname.startsWith("/app")) {

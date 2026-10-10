@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PendingButton } from "@/components/ui/pending-button";
 import { MessageCircle } from "lucide-react";
 import { Badge, ButtonLink, Card, CardTitle, PageHeader } from "@/components/app/ui";
 import { SchoolForm } from "@/components/app/team-forms";
@@ -53,14 +54,14 @@ export default async function ReglagesPage() {
                 <form action={setWhatsappAuto} className="flex flex-wrap items-center justify-between gap-3">
                   <input type="hidden" name="on" value={auto ? "0" : "1"} />
                   <span className="font-semibold">{auto ? "Envoi automatique activé" : "Envoi automatique désactivé"}</span>
-                  <button
+                  <PendingButton
                     role="switch"
                     aria-checked={auto}
                     aria-label="Activer l'envoi automatique"
                     className={`relative h-7 w-12 rounded-full transition ${auto ? "bg-brand-600" : "bg-line"}`}
                   >
                     <span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-all ${auto ? "left-6" : "left-1"}`} />
-                  </button>
+                  </PendingButton>
                 </form>
               ) : (
                 <p className="font-semibold">{auto ? "Envoi automatique activé." : "Envoi automatique désactivé (réglé par le propriétaire)."}</p>
@@ -86,7 +87,7 @@ export default async function ReglagesPage() {
               </ButtonLink>
             )}
             <form action={signOut} className="pt-3 lg:hidden">
-              <button className="font-semibold text-red-600">Se déconnecter</button>
+              <PendingButton className="font-semibold text-red-600">Se déconnecter</PendingButton>
             </form>
           </div>
         </Card>

@@ -13,7 +13,7 @@ export function PageHeader({ title, description, actions }: { title: React.React
     <motion.header
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease }}
+      transition={{ duration: 0.25, ease }}
       className="mb-6 flex flex-wrap items-end justify-between gap-4 sm:mb-8"
     >
       <div className="min-w-0">
@@ -30,7 +30,7 @@ export function Card({ children, className, delay = 0 }: { children: React.React
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay, ease }}
+      transition={{ duration: 0.3, delay: Math.min(delay, 0.1), ease }}
       className={cn("rounded-3xl border border-line bg-surface", className)}
     >
       {children}
@@ -58,7 +58,7 @@ export function AnimatedNumber({ value, format = "number" }: { value: number; fo
   const [shown, setShown] = useState(0);
   useEffect(() => {
     if (!inView) return;
-    const controls = animate(0, value, { duration: 1.1, ease, onUpdate: (v) => setShown(Math.round(v)) });
+    const controls = animate(0, value, { duration: 0.6, ease, onUpdate: (v) => setShown(Math.round(v)) });
     return () => controls.stop();
   }, [inView, value]);
   return <span ref={ref}>{format === "money" ? money(shown) : shown}</span>;
@@ -89,7 +89,7 @@ export function Stat({
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay, ease }}
+      transition={{ duration: 0.3, delay: Math.min(delay, 0.1), ease }}
       whileHover={{ y: -4 }}
       className={cn(
         "h-full rounded-3xl border p-4 sm:p-5",
@@ -118,7 +118,7 @@ export function StaggerList({ children, className }: { children: React.ReactNode
       className={className}
       initial="hidden"
       animate="show"
-      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.05 } } }}
+      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.025 } } }}
     >
       {children}
     </motion.ul>
@@ -129,7 +129,7 @@ export function StaggerItem({ children, className }: { children: React.ReactNode
   return (
     <motion.li
       className={className}
-      variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.35, ease } } }}
+      variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0, transition: { duration: 0.2, ease } } }}
     >
       {children}
     </motion.li>

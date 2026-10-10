@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PendingButton } from "@/components/ui/pending-button";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AlertTriangle, ArrowLeft, CalendarPlus, GraduationCap, MessageCircle, Pencil, Phone, StickyNote, Wallet } from "lucide-react";
@@ -207,7 +208,7 @@ export default async function ElevePage({ params, searchParams }: { params: Prom
                 <form action={updateStudentStatus} className="grid grid-cols-2 gap-2">
                   <input type="hidden" name="student_id" value={s.id} />
                   {(Object.keys(STATUS_LABEL) as Student["status"][]).map((st) => (
-                    <button
+                    <PendingButton
                       key={st}
                       name="status"
                       value={st}
@@ -217,7 +218,7 @@ export default async function ElevePage({ params, searchParams }: { params: Prom
                       )}
                     >
                       {STATUS_LABEL[st]}
-                    </button>
+                    </PendingButton>
                   ))}
                 </form>
               </Card>
@@ -361,12 +362,12 @@ export default async function ElevePage({ params, searchParams }: { params: Prom
                     <form action={setExamResult} className="flex gap-1.5">
                       <input type="hidden" name="exam_id" value={e.id} />
                       <input type="hidden" name="student_id" value={s.id} />
-                      <button name="result" value="passed" className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-bold text-white">
+                      <PendingButton name="result" value="passed" className="rounded-xl bg-brand-600 px-3 py-2 text-xs font-bold text-white">
                         Réussi
-                      </button>
-                      <button name="result" value="failed" className="rounded-xl border border-line px-3 py-2 text-xs font-bold text-muted hover:text-red-600">
+                      </PendingButton>
+                      <PendingButton name="result" value="failed" className="rounded-xl border border-line px-3 py-2 text-xs font-bold text-muted hover:text-red-600">
                         Échoué
-                      </button>
+                      </PendingButton>
                     </form>
                   ) : (
                     <Badge tone={e.result === "passed" ? "good" : e.result === "failed" ? "bad" : "neutral"}>

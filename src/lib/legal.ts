@@ -15,7 +15,7 @@ export const LEGAL = {
   ninea: null as string | null,
   rccm: null as string | null,
   cdpDeclaration: null as string | null,
-  site: "https://sunupermis.netlify.app",
+  site: "https://sunupermis.com",
   /** Date de la version en vigueur. À changer à chaque modification. */
   updated: "12 octobre 2026",
   version: "2026-10-12",

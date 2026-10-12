@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LegalLinks } from "@/components/legal/legal-page";
 import { PendingButton } from "@/components/ui/pending-button";
 import { MessageCircle } from "lucide-react";
 import { Badge, ButtonLink, Card, CardTitle, PageHeader } from "@/components/app/ui";
@@ -86,6 +87,7 @@ export default async function ReglagesPage() {
                 Gérer l'abonnement
               </ButtonLink>
             )}
+            <LegalLinks className="border-t border-line pt-4" />
             <form action={signOut} className="pt-3 lg:hidden">
               <PendingButton className="font-semibold text-red-600">Se déconnecter</PendingButton>
             </form>

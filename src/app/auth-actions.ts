@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { normalizePhone } from "@/lib/phone";
 import { siteOrigin } from "@/lib/session";
 import type { FormState } from "@/components/ui/form";
+import { LEGAL } from "@/lib/legal";
 
 const text = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 const TOKEN = /^[0-9a-f]{36}$/;
@@ -53,6 +54,7 @@ export async function signUp(_s: FormState, fd: FormData): Promise<FormState> {
   if (!isInvite && school.length < 2) return { error: "Indiquez le nom de l'auto-école." };
   if (!isInvite && !phone) return { error: "Numéro de téléphone invalide." };
   if (password.length < 8) return { error: "Le mot de passe doit faire au moins 8 caractères." };
+  if (fd.get("terms") !== "on") return { error: "Acceptez les conditions d'utilisation et la politique de confidentialité pour continuer." };
 
   const supabase = await createClient();
   const origin = await siteOrigin();
@@ -61,9 +63,10 @@ export async function signUp(_s: FormState, fd: FormData): Promise<FormState> {
     password,
     options: {
       emailRedirectTo: `${origin}/auth/callback?next=/bienvenue`,
+      // La version acceptée des conditions est gardée avec le compte.
       data: isInvite
-        ? { full_name: fullName, invite_token: invite }
-        : { full_name: fullName, school_name: school, school_city: city, school_phone: phone },
+        ? { full_name: fullName, invite_token: invite, terms_version: LEGAL.version, terms_accepted_at: new Date().toISOString() }
+        : { full_name: fullName, school_name: school, school_city: city, school_phone: phone, terms_version: LEGAL.version, terms_accepted_at: new Date().toISOString() },
     },
   });
   if (error) {

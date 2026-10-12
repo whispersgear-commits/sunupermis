@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { Logo } from "@/components/logo";
+import { LegalLinks } from "@/components/legal/legal-page";
 
 /** Écran partagé par la connexion et l'inscription : formulaire à gauche,
  *  panneau animé aux couleurs de la marque à droite. */
@@ -20,6 +21,7 @@ export function AuthShell({ title, subtitle, children, footer }: { title: string
           <p className="mt-2 text-muted">{subtitle}</p>
           <div className="mt-8">{children}</div>
           {footer && <div className="mt-6 text-sm text-muted">{footer}</div>}
+          <LegalLinks className="mt-10" />
         </motion.div>
       </div>
 

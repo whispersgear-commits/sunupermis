@@ -4,6 +4,7 @@ import { AuthShell } from "@/components/auth-shell";
 import { ActionForm, Submit } from "@/components/ui/form";
 import { Field, Input } from "@/components/ui/fields";
 import { signUp } from "../auth-actions";
+import { TermsCheckbox } from "@/components/legal/terms-checkbox";
 
 export const metadata: Metadata = { title: "Créer mon auto-école" };
 
@@ -42,6 +43,7 @@ export default function InscriptionPage() {
         <Field label="Mot de passe" hint="8 caractères minimum.">
           <Input name="password" type="password" required minLength={8} autoComplete="new-password" />
         </Field>
+        <TermsCheckbox />
         <Submit className="w-full">Créer mon auto-école</Submit>
       </ActionForm>
     </AuthShell>

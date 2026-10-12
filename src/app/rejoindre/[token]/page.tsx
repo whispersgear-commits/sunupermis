@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { TermsCheckbox } from "@/components/legal/terms-checkbox";
 import Link from "next/link";
 import { AuthShell } from "@/components/auth-shell";
 import { ActionForm, Submit } from "@/components/ui/form";
@@ -72,6 +73,7 @@ export default async function RejoindrePage({ params }: { params: Promise<{ toke
         <Field label="Mot de passe" hint="8 caractères minimum.">
           <Input name="password" type="password" required minLength={8} autoComplete="new-password" />
         </Field>
+        <TermsCheckbox />
         <Submit className="w-full">Créer mon compte</Submit>
       </ActionForm>
     </AuthShell>

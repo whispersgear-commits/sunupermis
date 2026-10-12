@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { LegalLinks } from "@/components/legal/legal-page";
 import { BadgeCheck, CircleX, SearchX } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { createClient } from "@/lib/supabase/server";
@@ -76,6 +77,7 @@ export default async function VerifierRecuPage({ params }: { params: Promise<{ t
           )}
         </div>
         <p className="mt-6 text-center text-xs text-muted">Vérification fournie par SunuPermis, logiciel de gestion des auto-écoles.</p>
+        <LegalLinks className="mt-3 justify-center" />
       </div>
     </main>
   );

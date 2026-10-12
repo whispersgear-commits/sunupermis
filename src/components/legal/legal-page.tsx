@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { LEGAL, LEGAL_PAGES } from "@/lib/legal";
 import { cn } from "@/lib/utils";
+import { SunuAgence } from "@/components/sunu-agence";
 
 /** Mise en page commune des trois documents légaux : sommaire, texte lisible, liens croisés. */
 export function LegalPage({
@@ -94,6 +95,9 @@ export function LegalPage({
               ou appelez le {LEGAL.phone}.
             </p>
           </article>
+        </div>
+        <div className="mt-8 flex justify-center print:hidden">
+          <SunuAgence />
         </div>
       </div>
     </div>

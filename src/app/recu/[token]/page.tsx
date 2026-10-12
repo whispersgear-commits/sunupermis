@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { money } from "@/lib/format";
 import { receiptLabel } from "@/lib/receipts";
 import { METHOD_LABEL, type Payment } from "@/lib/types";
+import { SunuAgence } from "@/components/sunu-agence";
 
 export const metadata: Metadata = { title: "Vérification d'un reçu", robots: { index: false, follow: false } };
 
@@ -78,6 +79,9 @@ export default async function VerifierRecuPage({ params }: { params: Promise<{ t
         </div>
         <p className="mt-6 text-center text-xs text-muted">Vérification fournie par SunuPermis, logiciel de gestion des auto-écoles.</p>
         <LegalLinks className="mt-3 justify-center" />
+        <div className="mt-4 flex justify-center">
+          <SunuAgence />
+        </div>
       </div>
     </main>
   );

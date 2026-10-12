@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { LegalPage, Section } from "@/components/legal/legal-page";
 import { LEGAL } from "@/lib/legal";
@@ -35,6 +36,12 @@ export default function MentionsLegalesPage() {
       intro={<>Informations sur l'éditeur et l'hébergeur du site {LEGAL.site.replace(/^https?:\/\//, "")}, conformément à la loi n° 2008-08 du 25 janvier 2008 sur les transactions électroniques.</>}
     >
       <Section id="editeur" n={1} title="Éditeur">
+        <div className="mb-3 flex items-center gap-4 rounded-2xl bg-[#F4EBD9] p-4 text-[#2D6A4F]">
+          <Image src="/brand/sunu-agence-baobab.png" alt="" width={48} height={48} className="h-12 w-12 rounded-full" />
+          <p className="font-semibold">
+            {LEGAL.product} est un produit de {LEGAL.editor}.
+          </p>
+        </div>
         <dl>
           <Row label="Nom">{LEGAL.editor}</Row>
           <Row label="Statut">{LEGAL.status}</Row>
@@ -56,7 +63,7 @@ export default function MentionsLegalesPage() {
       </Section>
 
       <Section id="publication" n={2} title="Directeur de la publication">
-        <p>{LEGAL.editor}.</p>
+        <p>{LEGAL.director}, pour {LEGAL.editor}.</p>
       </Section>
 
       <Section id="hebergement" n={3} title="Hébergement">

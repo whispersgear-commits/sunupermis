@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SunuAgence } from "@/components/sunu-agence";
 
 export default function NotFound() {
   return (
@@ -10,6 +11,9 @@ export default function NotFound() {
         <Link href="/" className="mt-6 inline-flex h-11 items-center rounded-xl bg-brand-600 px-5 font-semibold text-white">
           Revenir à l'accueil
         </Link>
+        <div className="mt-10">
+          <SunuAgence />
+        </div>
       </div>
     </div>
   );

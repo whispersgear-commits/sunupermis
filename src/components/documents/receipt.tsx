@@ -125,7 +125,7 @@ export function Receipt({
           <div className="h-24 w-24 shrink-0 rounded-lg bg-white p-1.5" dangerouslySetInnerHTML={{ __html: qr }} />
         </div>
       </div>
-      <p className="mt-5 border-t border-line pt-2 text-center text-[11px] text-muted print:mt-3">Reçu émis par SunuPermis · numérotation continue, aucun reçu ne peut être supprimé.</p>
+      <p className="mt-5 border-t border-line pt-2 text-center text-[11px] text-muted print:mt-3">Reçu émis par SunuPermis, un produit Sunu Agence · numérotation continue, aucun reçu ne peut être supprimé.</p>
     </article>
   );
 }

@@ -26,6 +26,7 @@ import {
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import { groupDigits } from "@/lib/format";
+import { SunuAgence } from "@/components/sunu-agence";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -515,6 +516,9 @@ export function Footer() {
         <Logo />
         <LegalLinks className="justify-center text-sm" />
         <p>© {new Date().getFullYear()} SunuPermis · Dakar, Sénégal</p>
+      </div>
+      <div className="flex justify-center border-t border-line px-4 py-4">
+        <SunuAgence />
       </div>
     </footer>
   );

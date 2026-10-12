@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { Logo } from "@/components/logo";
 import { LegalLinks } from "@/components/legal/legal-page";
+import { SunuAgence } from "@/components/sunu-agence";
 
 /** Écran partagé par la connexion et l'inscription : formulaire à gauche,
  *  panneau animé aux couleurs de la marque à droite. */
@@ -22,6 +23,7 @@ export function AuthShell({ title, subtitle, children, footer }: { title: string
           <div className="mt-8">{children}</div>
           {footer && <div className="mt-6 text-sm text-muted">{footer}</div>}
           <LegalLinks className="mt-10" />
+          <SunuAgence className="mt-4" />
         </motion.div>
       </div>
 

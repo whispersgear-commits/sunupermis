@@ -6,8 +6,9 @@
  */
 export const LEGAL = {
   product: "SunuPermis",
-  editor: "Banda Ndiaye",
-  status: "Entrepreneur individuel",
+  editor: "Sunu Agence",
+  status: "Entreprise (immatriculation NINEA et RCCM en cours)",
+  director: "Banda Ndiaye",
   city: "Dakar, Sénégal",
   address: null as string | null,
   email: "bandandiaye418@gmail.com",

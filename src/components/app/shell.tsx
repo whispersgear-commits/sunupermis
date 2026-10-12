@@ -28,6 +28,7 @@ import { inputClass } from "@/components/ui/fields";
 import { cn } from "@/lib/utils";
 import { ROLE_LABEL, type Role } from "@/lib/types";
 import { Avatar } from "./ui";
+import { SunuAgence } from "@/components/sunu-agence";
 
 interface NavItem {
   href: string;
@@ -211,6 +212,9 @@ export function Shell({
 
         <main className="pb-28 lg:pb-0 print:p-0">
           <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:py-8 print:max-w-none print:p-0">{children}</div>
+          <div className="flex justify-center px-4 pb-6 pt-2 print:hidden">
+            <SunuAgence />
+          </div>
         </main>
       </div>
 

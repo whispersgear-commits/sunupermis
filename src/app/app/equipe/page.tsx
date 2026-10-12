@@ -111,7 +111,7 @@ export default async function EquipePage({ searchParams }: { searchParams: Promi
           <Card>
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-4">
               <h2 className="font-bold">Comptes de connexion</h2>
-              <Badge tone="info">{limit === null ? `${memberList.length} · illimité pendant l'essai` : `${memberList.length} / ${limit} · ${PLANS[ctx.school.plan].name}`}</Badge>
+              <Badge tone="info">{limit === null ? `${memberList.length} · illimité (accès offert)` : `${memberList.length} / ${limit} · ${PLANS[ctx.school.plan].name}`}</Badge>
             </div>
             <ul className="divide-y divide-line">
               {memberList.map((m) => (

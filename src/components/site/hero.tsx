@@ -80,7 +80,7 @@ export function Hero() {
               href="/inscription"
               className="group inline-flex h-12 items-center gap-2 rounded-2xl bg-brand-500 px-6 font-semibold text-white shadow-lg shadow-brand-500/30 transition hover:bg-brand-400"
             >
-              Essayer 1 mois gratuit
+              Créer mon auto-école
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
             </Link>
             <a
@@ -96,7 +96,7 @@ export function Hero() {
             transition={{ delay: 1.1 }}
             className="mt-4 text-sm text-slate-400"
           >
-            Sans carte bancaire · Sans engagement · Paiement par Wave
+            Sans engagement · Paiement par Wave, Orange Money ou carte
           </motion.p>
         </div>
 

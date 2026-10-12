@@ -10,7 +10,8 @@ réservation, forfaits payés en plusieurs fois, examens et rappels WhatsApp.
 - **Rappels WhatsApp automatiques** chaque soir à 18 h, ou en un clic
   (`docs/WHATSAPP.md`). Sans configuration, un clic ouvre WhatsApp avec le
   message prêt.
-- **Abonnement payé en ligne** par Wave (`docs/PAIEMENT.md`), 30 jours d'essai.
+- **Abonnement payé en ligne** par Bictorys : Wave, Orange Money ou carte
+  (`docs/PAIEMENT.md`). Formule choisie et payée à l'inscription, sans essai.
 
 ## Pile
 
@@ -41,12 +42,12 @@ La base se crée avec les migrations de `supabase/migrations`, dans l'ordre.
 
 Variables d'environnement : voir `.env.example`. Seules
 `NEXT_PUBLIC_SUPABASE_URL` et `NEXT_PUBLIC_SUPABASE_ANON_KEY` sont
-obligatoires ; les autres activent le paiement Wave, les rappels WhatsApp
+obligatoires ; les autres activent le paiement Bictorys, les rappels WhatsApp
 automatiques et la tâche du soir.
 
-La clé `SUPABASE_SERVICE_ROLE_KEY` n'est utilisée que par le webhook Wave
-(après vérification de la signature) et par `/api/cron/rappels` (protégé par
-`CRON_SECRET`). Elle ne doit jamais avoir le préfixe `NEXT_PUBLIC_`.
+La clé `SUPABASE_SERVICE_ROLE_KEY` n'est utilisée que par `/api/cron/rappels`
+(protégé par `CRON_SECRET`). Les paiements sont validés avec
+`PAYMENTS_SERVER_SECRET`, dont la base garde l'empreinte. Elle ne doit jamais avoir le préfixe `NEXT_PUBLIC_`.
 
 Dans Supabase > Authentication > URL Configuration : *Site URL*
 `https://sunupermis.netlify.app` et *Redirect URLs*

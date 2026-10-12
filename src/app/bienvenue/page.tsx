@@ -48,7 +48,9 @@ export default async function BienvenuePage() {
             <Input name="phone" type="tel" defaultValue={meta.school_phone ?? ""} />
           </Field>
         </div>
-        <Submit className="w-full">Ouvrir mon espace</Submit>
+        <input type="hidden" name="plan" value={meta.plan ?? ""} />
+        <input type="hidden" name="months" value={String(meta.plan_months ?? "")} />
+        <Submit className="w-full">Continuer vers le paiement</Submit>
       </ActionForm>
     </AuthShell>
   );

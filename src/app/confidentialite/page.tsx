@@ -68,7 +68,7 @@ export default function ConfidentialitePage() {
           <b>Données techniques</b> : journaux de connexion et d'erreurs conservés par nos hébergeurs pour la sécurité, journal des messages WhatsApp envoyés
           automatiquement (destinataire, date, statut).
         </p>
-        <p>Nous ne collectons ni données bancaires (le paiement Wave se fait chez Wave), ni localisation, ni données de santé.</p>
+        <p>Nous ne collectons ni données bancaires (le paiement de l'abonnement se fait sur la page sécurisée de Bictorys), ni localisation, ni données de santé.</p>
       </Section>
 
       <Section id="finalites" n={3} title="Pourquoi nous les utilisons">
@@ -106,7 +106,7 @@ export default function ConfidentialitePage() {
             <b>Meta (WhatsApp Business)</b> : uniquement si l'envoi automatique des rappels est activé ; reçoit le numéro de l'élève et le texte du rappel.
           </li>
           <li>
-            <b>Wave</b> : paiement de l'abonnement en ligne ; reçoit le montant et une référence, jamais les données des élèves.
+            <b>Bictorys</b> : paiement de l'abonnement en ligne (Wave, Orange Money, carte) ; reçoit le montant, une référence et les coordonnées du propriétaire, jamais les données des élèves.
           </li>
         </ul>
         <p>

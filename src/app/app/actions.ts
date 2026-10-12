@@ -4,9 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { addMonths, formatISO } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
-import { requireContext, requireOwner, requireStaff, siteOrigin } from "@/lib/session";
-import { PLANS, planPrice, userLimit, type PlanId } from "@/lib/plans";
-import { createCheckout, waveConfigured } from "@/lib/wave";
+import { requireContext, requireOwner, requireStaff } from "@/lib/session";
+import { PLANS, userLimit } from "@/lib/plans";
 import { whatsappConfigured } from "@/lib/whatsapp-api";
 import { sendLessonReminders, sendPaymentReminders } from "@/lib/reminders";
 import { normalizePhone } from "@/lib/phone";
@@ -366,42 +365,6 @@ export async function removeMember(fd: FormData) {
   const supabase = await createClient();
   await supabase.from("memberships").delete().eq("user_id", userId).eq("school_id", ctx.school.id);
   revalidatePath("/app/equipe");
-}
-
-// ---------------------------------------------------------------------------
-// Abonnement (paiement Wave)
-// ---------------------------------------------------------------------------
-
-export async function startSubscription(_s: FormState, fd: FormData): Promise<FormState> {
-  const ctx = await requireOwner();
-  if (!waveConfigured()) return { error: "Le paiement en ligne n'est pas encore activé. Contactez-nous sur WhatsApp." };
-  const plan = text(fd, "plan") as PlanId;
-  if (!(plan in PLANS)) return { error: "Formule inconnue." };
-  const months = text(fd, "months") === "12" ? 12 : 1;
-  const amount = planPrice(plan, months);
-  const origin = await siteOrigin();
-
-  const checkout = await createCheckout({
-    amount,
-    clientReference: `${ctx.school.id}:${plan}:${months}`,
-    successUrl: `${origin}/app/abonnement?paiement=ok`,
-    errorUrl: `${origin}/app/abonnement?paiement=erreur`,
-  });
-  if (!checkout.ok) return { error: checkout.error };
-
-  // La ligne « en attente » porte l'identifiant de session Wave : c'est par
-  // lui, et seulement par lui, que le webhook confirmera le paiement.
-  const supabase = await createClient();
-  const { error } = await supabase.from("subscription_payments").insert({
-    school_id: ctx.school.id,
-    plan,
-    months,
-    amount,
-    provider_ref: checkout.id,
-    created_by: ctx.userId,
-  });
-  if (error) return { error: "Paiement non enregistré. Réessayez." };
-  redirect(checkout.url);
 }
 
 // ---------------------------------------------------------------------------

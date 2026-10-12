@@ -6,9 +6,17 @@ import { normalizePhone } from "@/lib/phone";
 import { siteOrigin } from "@/lib/session";
 import type { FormState } from "@/components/ui/form";
 import { LEGAL } from "@/lib/legal";
+import { PLANS } from "@/lib/plans";
 
 const text = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 const TOKEN = /^[0-9a-f]{36}$/;
+
+/** Après la création de l'école : paiement du premier abonnement. */
+function checkoutPath(plan: unknown, months: unknown): string {
+  const id = typeof plan === "string" && plan in PLANS ? plan : null;
+  if (!id) return "/app/abonnement?bienvenue=1";
+  return `/app/abonnement/payer?plan=${id}&mois=${String(months) === "12" ? 12 : 1}`;
+}
 
 /** Une destination de retour n'est suivie que si elle reste dans le site. */
 function safePath(path: string, fallback = "/app"): string {
@@ -49,6 +57,8 @@ export async function signUp(_s: FormState, fd: FormData): Promise<FormState> {
   const email = text(fd, "email").toLowerCase();
   const password = String(fd.get("password") ?? "");
   const phone = normalizePhone(text(fd, "phone"));
+  const plan = text(fd, "plan") in PLANS ? text(fd, "plan") : "pro";
+  const months = text(fd, "months") === "12" ? 12 : 1;
 
   if (fullName.length < 2) return { error: "Indiquez votre nom." };
   if (!isInvite && school.length < 2) return { error: "Indiquez le nom de l'auto-école." };
@@ -66,7 +76,7 @@ export async function signUp(_s: FormState, fd: FormData): Promise<FormState> {
       // La version acceptée des conditions est gardée avec le compte.
       data: isInvite
         ? { full_name: fullName, invite_token: invite, terms_version: LEGAL.version, terms_accepted_at: new Date().toISOString() }
-        : { full_name: fullName, school_name: school, school_city: city, school_phone: phone, terms_version: LEGAL.version, terms_accepted_at: new Date().toISOString() },
+        : { full_name: fullName, school_name: school, school_city: city, school_phone: phone, plan, plan_months: months, terms_version: LEGAL.version, terms_accepted_at: new Date().toISOString() },
     },
   });
   if (error) {
@@ -88,7 +98,7 @@ export async function signUp(_s: FormState, fd: FormData): Promise<FormState> {
 
   const { error: rpcError } = await supabase.rpc("create_school", { school_name: school, school_city: city, school_phone: phone });
   if (rpcError) return { error: "Le compte est créé, mais pas l'école. Connectez-vous pour terminer." };
-  redirect("/app?bienvenue=1");
+  redirect(checkoutPath(plan, months));
 }
 
 export async function createSchool(_s: FormState, fd: FormData): Promise<FormState> {
@@ -101,7 +111,7 @@ export async function createSchool(_s: FormState, fd: FormData): Promise<FormSta
     school_phone: normalizePhone(text(fd, "phone")) ?? "",
   });
   if (error) return { error: "Création impossible. Réessayez." };
-  redirect("/app?bienvenue=1");
+  redirect(checkoutPath(text(fd, "plan"), text(fd, "months")));
 }
 
 /** Un compte déjà connecté accepte une invitation. */

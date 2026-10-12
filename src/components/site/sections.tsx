@@ -83,7 +83,7 @@ export function Nav() {
             href="/inscription"
             className="ml-1 whitespace-nowrap rounded-xl bg-white px-3 py-2 text-asphalt transition hover:bg-brand-50 sm:px-4"
           >
-            Essai gratuit
+            S'inscrire
           </Link>
         </nav>
       </div>
@@ -118,7 +118,7 @@ export function Stats() {
   const stats = [
     { value: 5, suffix: " min", label: "pour inscrire un élève et son échéancier" },
     { value: 0, suffix: "", label: "double réservation : la base les refuse" },
-    { value: 30, suffix: " jours", label: "d'essai gratuit, sans limite" },
+    { value: 2, suffix: " mois", label: "offerts avec l'abonnement annuel" },
     { value: 1, suffix: " clic", label: "pour relancer un impayé sur WhatsApp" },
   ];
   return (
@@ -341,9 +341,9 @@ export function Steps() {
 // ---------------------------------------------------------------------------
 
 const PLANS = [
-  { name: "Essentiel", price: "15 000", for: "1 ou 2 voitures", features: ["Élèves illimités", "Planning et paiements", "Rappels WhatsApp", "1 utilisateur"] },
-  { name: "Pro", price: "25 000", for: "3 à 6 voitures", features: ["Tout Essentiel", "Tableau de bord complet", "Suivi des examens", "5 utilisateurs"], featured: true },
-  { name: "Multi-agences", price: "50 000", for: "Plusieurs agences", features: ["Tout Pro", "Plusieurs agences", "Utilisateurs illimités", "Assistance prioritaire"] },
+  { id: "essentiel", name: "Essentiel", price: "15 000", for: "1 ou 2 voitures", features: ["Élèves illimités", "Planning et paiements", "Rappels WhatsApp", "1 utilisateur"] },
+  { id: "pro", name: "Pro", price: "25 000", for: "3 à 6 voitures", features: ["Tout Essentiel", "Tableau de bord complet", "Suivi des examens", "5 utilisateurs"], featured: true },
+  { id: "multi", name: "Multi-agences", price: "50 000", for: "Plusieurs agences", features: ["Tout Pro", "Plusieurs agences", "Utilisateurs illimités", "Assistance prioritaire"] },
 ];
 
 export function Pricing() {
@@ -414,13 +414,13 @@ export function Pricing() {
                     ))}
                   </ul>
                   <Link
-                    href="/inscription"
+                    href={`/inscription?plan=${p.id}&mois=${annual ? 12 : 1}`}
                     className={cn(
                       "mt-8 flex h-11 items-center justify-center rounded-xl font-semibold transition",
                       p.featured ? "bg-brand-500 text-white hover:bg-brand-400" : "border border-line hover:border-brand-600 hover:text-brand-700",
                     )}
                   >
-                    Commencer gratuitement
+                    Choisir cette formule
                   </Link>
                 </motion.div>
               </Reveal>
@@ -439,7 +439,7 @@ export function Pricing() {
 const FAQ = [
   { q: "Faut-il installer quelque chose ?", a: "Non. SunuPermis s'ouvre dans le navigateur du téléphone ou de l'ordinateur. Vous pouvez l'ajouter à l'écran d'accueil comme une application." },
   { q: "Mes élèves doivent-ils télécharger une application ?", a: "Non. Ils reçoivent leurs rappels sur WhatsApp, qu'ils utilisent déjà." },
-  { q: "Comment je paie l'abonnement ?", a: "Chaque mois par Wave ou Orange Money, sans engagement. Le premier mois est offert." },
+  { q: "Comment je paie l'abonnement ?", a: "En ligne dès l'inscription, par Wave, Orange Money ou carte bancaire. Au mois ou à l'année, sans engagement ni renouvellement automatique." },
   { q: "Mes données sont-elles protégées ?", a: "Chaque auto-école ne voit que ses propres données : la séparation est garantie par la base elle-même, pas seulement par l'écran." },
   { q: "Et si ma connexion est lente ?", a: "Les pages sont légères et fonctionnent en 3G. Les données sont sauvegardées en ligne : rien n'est perdu si votre téléphone se casse." },
 ];
@@ -499,7 +499,7 @@ export function FinalCta() {
           <div className="lane-dashes absolute inset-x-0 bottom-8 h-1.5 opacity-60" />
           <h2 className="relative text-3xl font-extrabold tracking-tight sm:text-5xl">Votre auto-école mérite mieux qu'un cahier.</h2>
           <p className="relative mx-auto mt-4 max-w-xl text-lg text-brand-50/90">
-            Créez votre école maintenant. Un mois gratuit, sans carte bancaire.
+            Créez votre école maintenant. Prête en 2 minutes, sans engagement.
           </p>
           <motion.div className="relative mt-8 inline-block" whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
             <Link href="/inscription" className="inline-flex h-12 items-center rounded-2xl bg-white px-7 font-bold text-brand-700 shadow-xl">

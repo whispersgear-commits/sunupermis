@@ -94,7 +94,7 @@ export function Shell({
 
   const trialCard = showTrial && (
     <Link href="/app/abonnement" className="block rounded-2xl bg-asphalt p-4 text-white transition hover:brightness-110">
-      <p className="text-xs font-semibold text-brand-200">{trial ? "Essai gratuit" : "Abonnement"}</p>
+      <p className="text-xs font-semibold text-brand-200">{trial ? "Accès offert" : "Abonnement"}</p>
       <p className="mt-1 text-2xl font-extrabold">
         {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}
       </p>

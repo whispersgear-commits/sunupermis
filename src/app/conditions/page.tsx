@@ -14,7 +14,7 @@ const TOC = [
   { id: "objet", label: "Objet" },
   { id: "definitions", label: "Définitions" },
   { id: "compte", label: "Compte et accès" },
-  { id: "essai", label: "Essai gratuit" },
+  { id: "acces", label: "Ouverture de l'accès" },
   { id: "tarifs", label: "Abonnement et paiement" },
   { id: "echeance", label: "Échéance et suspension" },
   { id: "engagements", label: "Vos engagements" },
@@ -74,10 +74,10 @@ export default function ConditionsPage() {
         </ul>
       </Section>
 
-      <Section id="essai" n={4} title="Essai gratuit">
+      <Section id="acces" n={4} title="Ouverture de l'accès">
         <p>
-          Chaque nouvelle auto-école bénéficie de <b>30 jours d'essai gratuit</b>, sans moyen de paiement à fournir. À la fin de l'essai, l'accès au logiciel
-          nécessite un abonnement payant. Aucun prélèvement n'a lieu automatiquement.
+          La formule est choisie lors de l'inscription. L'accès au logiciel s'ouvre <b>dès la confirmation du paiement</b> du premier abonnement ; il n'y a pas
+          de période d'essai gratuite. Aucun prélèvement n'a lieu automatiquement.
         </p>
       </Section>
 
@@ -91,7 +91,7 @@ export default function ConditionsPage() {
           ))}
         </ul>
         <p>
-          L'abonnement annuel est facturé au prix de 10 mois (2 mois offerts). Le paiement s'effectue en ligne par Wave ou, à défaut, selon les modalités
+          L'abonnement annuel est facturé au prix de 10 mois (2 mois offerts). Le paiement s'effectue en ligne via notre prestataire de paiement Bictorys (Wave, Orange Money ou carte bancaire) ou, à défaut, selon les modalités
           communiquées par {LEGAL.product}. La période payée s'ajoute à la date de fin en cours : payer avant l'échéance ne fait rien perdre.
         </p>
         <p>
@@ -103,7 +103,7 @@ export default function ConditionsPage() {
 
       <Section id="echeance" n={6} title="Échéance et suspension">
         <p>
-          À la fin de l'essai ou de la période payée, l'accès aux pages de gestion est suspendu jusqu'au paiement ; les pages Abonnement et Réglages restent
+          À la fin de la période payée, l'accès aux pages de gestion est suspendu jusqu'au paiement ; les pages Abonnement et Réglages restent
           accessibles. <b>Vos données ne sont pas effacées</b> pendant la suspension : elles réapparaissent dès le renouvellement (voir la durée de conservation
           dans la politique de confidentialité).
         </p>
@@ -160,7 +160,7 @@ export default function ConditionsPage() {
         <p>
           Sauf faute lourde ou intentionnelle, la responsabilité de {LEGAL.product} est limitée aux dommages directs et plafonnée aux sommes payées par
           l'auto-école au titre des 12 derniers mois d'abonnement. {LEGAL.product} n'est pas responsable des pertes indirectes (manque à gagner, perte de
-          clientèle) ni des défaillances des réseaux et services tiers (opérateurs, WhatsApp, Wave).
+          clientèle) ni des défaillances des réseaux et services tiers (opérateurs, WhatsApp, prestataires de paiement).
         </p>
       </Section>
 

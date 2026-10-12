@@ -79,7 +79,7 @@ export default async function ReglagesPage() {
               {!access.active
                 ? "Abonnement expiré."
                 : access.trial
-                  ? `Essai gratuit jusqu'au ${shortDate(access.until)}.`
+                  ? `Accès offert jusqu'au ${shortDate(access.until)}.`
                   : `Payé jusqu'au ${shortDate(access.until)}.`}
             </p>
             {isOwner && (

@@ -6,10 +6,11 @@ export function Logo({ href = "/", className, light = false }: { href?: string; 
   return (
     <Link href={href} className={cn("inline-flex items-center gap-2.5 font-extrabold tracking-tight", className)}>
       <span className="relative grid h-9 w-9 place-items-center rounded-xl bg-brand-600 text-white shadow-lg shadow-brand-600/30">
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
-          <circle cx="12" cy="12" r="8.5" />
-          <circle cx="12" cy="12" r="2.2" />
-          <path d="M12 14.2v6.3M9.9 11.4 4 9.5M14.1 11.4 20 9.5" />
+        {/* Même volant que le favicon (src/app/icon.svg). */}
+        <svg viewBox="10 10 44 44" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round" aria-hidden>
+          <circle cx="32" cy="32" r="18.5" />
+          <path d="M32 37v13.5M27.4 30.2 14.5 26.4M36.6 30.2 49.5 26.4" />
+          <circle cx="32" cy="32" r="5.2" fill="currentColor" stroke="none" />
         </svg>
         <span className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-white bg-lane" />
       </span>

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight, CalendarCheck, MessageCircle, Wallet } from "lucide-react";
@@ -83,10 +84,10 @@ export function Hero() {
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
             </Link>
             <a
-              href="#fonctionnalites"
+              href="#apercu"
               className="inline-flex h-12 items-center rounded-2xl border border-white/20 px-6 font-semibold text-white transition hover:bg-white/10"
             >
-              Voir comment ça marche
+              Voir le logiciel
             </a>
           </motion.div>
           <motion.p
@@ -120,9 +121,9 @@ export function Hero() {
 
 function HeroVisual({ reduce }: { reduce: boolean }) {
   const cards = [
-    { icon: CalendarCheck, title: "Leçon confirmée", text: "Awa · demain 10 h avec M. Diop", tone: "bg-brand-500" },
-    { icon: Wallet, title: "Paiement reçu", text: "50 000 FCFA par Wave", tone: "bg-lane text-asphalt" },
-    { icon: MessageCircle, title: "Rappel envoyé", text: "12 élèves prévenus sur WhatsApp", tone: "bg-[#25D366]" },
+    { icon: CalendarCheck, title: "Leçon faite", text: "Fatou · 08:00 avec Modou Diouf", tone: "bg-brand-500" },
+    { icon: Wallet, title: "Reçu REC-2026-0019", text: "50 000 FCFA par Wave", tone: "bg-lane text-asphalt" },
+    { icon: MessageCircle, title: "Rappels de demain", text: "8 élèves prévenus sur WhatsApp", tone: "bg-[#25D366]" },
   ];
 
   return (
@@ -134,43 +135,16 @@ function HeroVisual({ reduce }: { reduce: boolean }) {
         transition={{ duration: 0.9, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
         className="relative rounded-[2.5rem] border border-white/15 bg-white/5 p-3 shadow-2xl backdrop-blur"
       >
-        <div className="rounded-[2rem] bg-white p-5 text-asphalt">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-slate-500">Aujourd'hui</p>
-            <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-700">8 leçons</span>
-          </div>
-          <p className="mt-1 text-2xl font-extrabold">285 000 FCFA</p>
-          <p className="text-xs text-slate-500">encaissés cette semaine</p>
-
-          <div className="mt-4 flex h-20 items-end gap-1.5">
-            {[40, 65, 45, 80, 55, 95, 70].map((h, i) => (
-              <motion.div
-                key={i}
-                className="flex-1 rounded-t-md bg-brand-500"
-                initial={{ height: 0 }}
-                animate={{ height: `${h}%` }}
-                transition={{ duration: 0.8, delay: 0.8 + i * 0.07, ease: [0.22, 1, 0.36, 1] }}
-                style={{ opacity: i === 5 ? 1 : 0.35 }}
-              />
-            ))}
-          </div>
-
-          <div className="mt-4 space-y-2">
-            {["08:00 · Awa Fall", "10:00 · Moussa Sarr", "14:00 · Fatou Ndiaye"].map((row, i) => (
-              <motion.div
-                key={row}
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 1.2 + i * 0.12 }}
-                className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-xs"
-              >
-                <span className="font-medium">{row}</span>
-                <span className={i === 0 ? "font-semibold text-brand-600" : "text-slate-400"}>
-                  {i === 0 ? "Faite ✓" : "Prévue"}
-                </span>
-              </motion.div>
-            ))}
-          </div>
+        {/* Vraie capture du tableau de bord, données de démonstration. */}
+        <div className="relative aspect-[390/640] overflow-hidden rounded-[2rem] bg-white">
+          <Image
+            src="/screens/m-accueil.webp"
+            alt="Tableau de bord SunuPermis sur téléphone : encaissé ce mois, impayés en retard, leçons du jour, prochaine leçon"
+            fill
+            priority
+            sizes="(max-width: 640px) 85vw, 360px"
+            className="object-cover object-top"
+          />
         </div>
       </motion.div>
 

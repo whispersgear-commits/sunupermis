@@ -67,6 +67,9 @@ export function Nav() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Logo light />
         <nav className="flex items-center gap-1 text-sm font-semibold">
+          <a href="#apercu" className="hidden rounded-lg px-3 py-2 text-slate-300 hover:text-white md:block">
+            Aperçu
+          </a>
           <a href="#fonctionnalites" className="hidden rounded-lg px-3 py-2 text-slate-300 hover:text-white md:block">
             Fonctionnalités
           </a>

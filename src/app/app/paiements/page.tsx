@@ -323,7 +323,7 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
               <p className="mt-0.5 text-xs text-slate-400">à compter dans le tiroir-caisse</p>
             </div>
             {dayByMethod
-              .filter((x) => x.m !== "cash")
+              .filter((x) => x.m !== "cash" && (x.m !== "other" || x.total > 0))
               .map((x) => (
                 <div key={x.m} className="rounded-3xl border border-line bg-surface p-5">
                   <p className="flex items-center gap-2 text-xs font-semibold text-muted">

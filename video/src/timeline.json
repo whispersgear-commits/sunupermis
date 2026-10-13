@@ -1,0 +1,432 @@
+{
+ "fps": 30,
+ "durationInFrames": 1070,
+ "scenes": [
+  {
+   "id": "hook",
+   "from": 0,
+   "len": 82
+  },
+  {
+   "id": "pain",
+   "from": 82,
+   "len": 136
+  },
+  {
+   "id": "reveal",
+   "from": 218,
+   "len": 92
+  },
+  {
+   "id": "eleve",
+   "from": 310,
+   "len": 134
+  },
+  {
+   "id": "planning",
+   "from": 444,
+   "len": 126
+  },
+  {
+   "id": "recu",
+   "from": 570,
+   "len": 154
+  },
+  {
+   "id": "caisse",
+   "from": 724,
+   "len": 99
+  },
+  {
+   "id": "fin",
+   "from": 823,
+   "len": 247
+  }
+ ],
+ "phrases": [
+  {
+   "scene": "hook",
+   "text": "Votre auto-école tourne encore au cahier ?",
+   "from": 10,
+   "to": 73,
+   "words": [
+    {
+     "w": "Votre",
+     "f": 11
+    },
+    {
+     "w": "auto-école",
+     "f": 18
+    },
+    {
+     "w": "tourne",
+     "f": 34
+    },
+    {
+     "w": "encore",
+     "f": 46
+    },
+    {
+     "w": "au",
+     "f": 56
+    },
+    {
+     "w": "cahier",
+     "f": 59
+    },
+    {
+     "w": "?",
+     "f": 70
+    }
+   ]
+  },
+  {
+   "scene": "pain",
+   "text": "Des élèves oubliés, des paiements perdus, des leçons en double.",
+   "from": 92,
+   "to": 209,
+   "words": [
+    {
+     "w": "Des",
+     "f": 93
+    },
+    {
+     "w": "élèves",
+     "f": 99
+    },
+    {
+     "w": "oubliés,",
+     "f": 109
+    },
+    {
+     "w": "des",
+     "f": 131
+    },
+    {
+     "w": "paiements",
+     "f": 139
+    },
+    {
+     "w": "perdus,",
+     "f": 155
+    },
+    {
+     "w": "des",
+     "f": 173
+    },
+    {
+     "w": "leçons",
+     "f": 179
+    },
+    {
+     "w": "en",
+     "f": 192
+    },
+    {
+     "w": "double.",
+     "f": 196
+    }
+   ]
+  },
+  {
+   "scene": "reveal",
+   "text": "Avec SunuPermis, tout est sur votre téléphone.",
+   "from": 229,
+   "to": 301,
+   "words": [
+    {
+     "w": "Avec",
+     "f": 229
+    },
+    {
+     "w": "SunuPermis,",
+     "f": 236
+    },
+    {
+     "w": "tout",
+     "f": 250
+    },
+    {
+     "w": "est",
+     "f": 264
+    },
+    {
+     "w": "sur",
+     "f": 271
+    },
+    {
+     "w": "votre",
+     "f": 275
+    },
+    {
+     "w": "téléphone.",
+     "f": 286
+    }
+   ]
+  },
+  {
+   "scene": "eleve",
+   "text": "Chaque élève : son forfait, ses leçons, et ce qu'il reste à payer.",
+   "from": 321,
+   "to": 435,
+   "words": [
+    {
+     "w": "Chaque",
+     "f": 322
+    },
+    {
+     "w": "élève",
+     "f": 332
+    },
+    {
+     "w": ":",
+     "f": 341
+    },
+    {
+     "w": "son",
+     "f": 350
+    },
+    {
+     "w": "forfait,",
+     "f": 355
+    },
+    {
+     "w": "ses",
+     "f": 370
+    },
+    {
+     "w": "leçons,",
+     "f": 376
+    },
+    {
+     "w": "et",
+     "f": 384
+    },
+    {
+     "w": "ce",
+     "f": 388
+    },
+    {
+     "w": "qu'il",
+     "f": 405
+    },
+    {
+     "w": "reste",
+     "f": 412
+    },
+    {
+     "w": "à",
+     "f": 421
+    },
+    {
+     "w": "payer.",
+     "f": 426
+    }
+   ]
+  },
+  {
+   "scene": "planning",
+   "text": "Le planning de la semaine, sans aucun créneau en double.",
+   "from": 454,
+   "to": 561,
+   "words": [
+    {
+     "w": "Le",
+     "f": 455
+    },
+    {
+     "w": "planning",
+     "f": 459
+    },
+    {
+     "w": "de",
+     "f": 475
+    },
+    {
+     "w": "la",
+     "f": 480
+    },
+    {
+     "w": "semaine,",
+     "f": 485
+    },
+    {
+     "w": "sans",
+     "f": 502
+    },
+    {
+     "w": "aucun",
+     "f": 512
+    },
+    {
+     "w": "créneau",
+     "f": 524
+    },
+    {
+     "w": "en",
+     "f": 543
+    },
+    {
+     "w": "double.",
+     "f": 547
+    }
+   ]
+  },
+  {
+   "scene": "recu",
+   "text": "Wave, Orange Money ou espèces : chaque paiement donne un reçu avec QR code.",
+   "from": 580,
+   "to": 715,
+   "words": [
+    {
+     "w": "Wave,",
+     "f": 581
+    },
+    {
+     "w": "Orange",
+     "f": 588
+    },
+    {
+     "w": "Money",
+     "f": 602
+    },
+    {
+     "w": "ou",
+     "f": 611
+    },
+    {
+     "w": "espèces",
+     "f": 615
+    },
+    {
+     "w": ":",
+     "f": 629
+    },
+    {
+     "w": "chaque",
+     "f": 630
+    },
+    {
+     "w": "paiement",
+     "f": 650
+    },
+    {
+     "w": "donne",
+     "f": 667
+    },
+    {
+     "w": "un",
+     "f": 676
+    },
+    {
+     "w": "reçu",
+     "f": 680
+    },
+    {
+     "w": "avec",
+     "f": 687
+    },
+    {
+     "w": "QR",
+     "f": 698
+    },
+    {
+     "w": "code.",
+     "f": 706
+    }
+   ]
+  },
+  {
+   "scene": "caisse",
+   "text": "Et le soir, la caisse du jour est déjà faite.",
+   "from": 735,
+   "to": 814,
+   "words": [
+    {
+     "w": "Et",
+     "f": 735
+    },
+    {
+     "w": "le",
+     "f": 739
+    },
+    {
+     "w": "soir,",
+     "f": 743
+    },
+    {
+     "w": "la",
+     "f": 749
+    },
+    {
+     "w": "caisse",
+     "f": 752
+    },
+    {
+     "w": "du",
+     "f": 775
+    },
+    {
+     "w": "jour",
+     "f": 779
+    },
+    {
+     "w": "est",
+     "f": 785
+    },
+    {
+     "w": "déjà",
+     "f": 796
+    },
+    {
+     "w": "faite.",
+     "f": 802
+    }
+   ]
+  },
+  {
+   "scene": "fin",
+   "text": "SunuPermis. Votre auto-école, sans le cahier. Inscrivez-vous sur sunupermis.com",
+   "from": 834,
+   "to": 1007,
+   "words": [
+    {
+     "w": "SunuPermis.",
+     "f": 834
+    },
+    {
+     "w": "Votre",
+     "f": 853
+    },
+    {
+     "w": "auto-école,",
+     "f": 876
+    },
+    {
+     "w": "sans",
+     "f": 907
+    },
+    {
+     "w": "le",
+     "f": 914
+    },
+    {
+     "w": "cahier.",
+     "f": 924
+    },
+    {
+     "w": "Inscrivez-vous",
+     "f": 950
+    },
+    {
+     "w": "sur",
+     "f": 972
+    },
+    {
+     "w": "sunupermis.com",
+     "f": 980
+    }
+   ]
+  }
+ ]
+}

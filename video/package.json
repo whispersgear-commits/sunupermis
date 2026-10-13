@@ -1,0 +1,21 @@
+{
+  "name": "sunupermis-video",
+  "private": true,
+  "description": "Short motion design SunuPermis (Remotion)",
+  "scripts": {
+    "studio": "remotion studio",
+    "audio": "python3 audio/build.py",
+    "render": "remotion render Short out/SUNUPERMIS-short-9x16.mp4 --audio-codec aac --audio-bitrate 256k"
+  },
+  "dependencies": {
+    "@fontsource/plus-jakarta-sans": "5.2.8",
+    "@remotion/cli": "4.0.300",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.300"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "typescript": "5.8.3"
+  }
+}

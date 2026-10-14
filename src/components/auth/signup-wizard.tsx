@@ -6,17 +6,14 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowLeft, ArrowRight, Building2, Check, CreditCard, Eye, EyeOff, Lock, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { money } from "@/lib/format";
-import { PLANS, planPrice, type PlanId } from "@/lib/plans";
+import { PLAN_HIGHLIGHTS, PLANS, planPrice, type PlanId } from "@/lib/plans";
+import { PlanComparison } from "@/components/app/plan-comparison";
 import { ActionForm, Submit } from "@/components/ui/form";
 import { Field, Input } from "@/components/ui/fields";
 import { TermsCheckbox } from "@/components/legal/terms-checkbox";
 import { signUp } from "@/app/auth-actions";
 
-const FEATURES: Record<PlanId, string[]> = {
-  essentiel: ["Élèves illimités", "Planning des leçons", "Paiements et échéanciers", "Reçus avec QR code", "Rappels WhatsApp"],
-  pro: ["Tout l'Essentiel", "Jusqu'à 5 comptes : secrétaire, moniteurs", "Caisse du jour par personne", "Rappels automatiques chaque soir", "Suivi des examens"],
-  multi: ["Tout le Pro", "Comptes illimités", "Plusieurs agences", "Assistance prioritaire"],
-};
+const FEATURES = PLAN_HIGHLIGHTS;
 
 const STEPS = [
   { id: "formule", label: "Formule", icon: Sparkles },
@@ -120,7 +117,7 @@ export function SignupWizard({ defaultPlan, defaultMonths }: { defaultPlan: Plan
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-lg font-bold">{PLANS[id].name}</p>
-                          <p className="text-sm text-muted">{PLANS[id].description}</p>
+                          <p className="text-sm text-muted">{PLANS[id].pitch}</p>
                         </div>
                         <span
                           className={cn(
@@ -149,6 +146,13 @@ export function SignupWizard({ defaultPlan, defaultMonths }: { defaultPlan: Plan
                   );
                 })}
               </div>
+              <details className="group mt-5">
+                <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline">
+                  Comparer les formules en détail
+                  <ArrowRight className="h-4 w-4 transition group-open:rotate-90" />
+                </summary>
+                <PlanComparison className="mt-4" highlight={plan} />
+              </details>
               <Nav onNext={() => go(1)} nextLabel={`Continuer avec ${PLANS[plan].name}`} />
             </Panel>
 

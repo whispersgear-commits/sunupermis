@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { PLAN_HIGHLIGHTS, PLANS as PLAN_DEFS, type PlanId } from "@/lib/plans";
+import { PlanComparison } from "@/components/app/plan-comparison";
 import { LegalLinks } from "@/components/legal/legal-page";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -19,6 +21,7 @@ import {
   ChevronDown,
   FileCheck2,
   MessageCircle,
+  QrCode,
   Smartphone,
   Users,
   Wallet,
@@ -162,6 +165,11 @@ const FEATURES = [
     icon: Users,
     title: "Fiche élève complète",
     text: "Coordonnées, type de permis, heures faites, solde, examens : tout au même endroit.",
+  },
+  {
+    icon: QrCode,
+    title: "Reçus avec QR code",
+    text: "Chaque paiement donne un reçu numéroté, envoyé sur WhatsApp et vérifiable par l'élève.",
   },
   {
     icon: BarChart3,
@@ -340,11 +348,15 @@ export function Steps() {
 // Tarifs
 // ---------------------------------------------------------------------------
 
-const PLANS = [
-  { id: "essentiel", name: "Essentiel", price: "15 000", for: "1 ou 2 voitures", features: ["Élèves illimités", "Planning et paiements", "Rappels WhatsApp", "1 utilisateur"] },
-  { id: "pro", name: "Pro", price: "25 000", for: "3 à 6 voitures", features: ["Tout Essentiel", "Tableau de bord complet", "Suivi des examens", "5 utilisateurs"], featured: true },
-  { id: "multi", name: "Multi-agences", price: "50 000", for: "Plusieurs agences", features: ["Tout Pro", "Plusieurs agences", "Utilisateurs illimités", "Assistance prioritaire"] },
-];
+// Mêmes formules et mêmes lignes que l'inscription et la page Abonnement.
+const PLANS = (Object.keys(PLAN_DEFS) as PlanId[]).map((id) => ({
+  id,
+  name: PLAN_DEFS[id].name,
+  price: groupDigits(PLAN_DEFS[id].price),
+  for: PLAN_DEFS[id].pitch,
+  features: PLAN_HIGHLIGHTS[id],
+  featured: id === "pro",
+}));
 
 export function Pricing() {
   const [annual, setAnnual] = useState(false);
@@ -407,8 +419,8 @@ export function Pricing() {
                   </p>
                   <ul className="mt-6 space-y-2.5 text-sm">
                     {p.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2.5">
-                        <Check className={cn("h-4 w-4", p.featured ? "text-lane" : "text-brand-600")} strokeWidth={3} />
+                      <li key={f} className="flex items-start gap-2.5">
+                        <Check className={cn("mt-0.5 h-4 w-4 shrink-0", p.featured ? "text-lane" : "text-brand-600")} strokeWidth={3} />
                         {f}
                       </li>
                     ))}
@@ -427,6 +439,9 @@ export function Pricing() {
             );
           })}
         </div>
+        <Reveal>
+          <PlanComparison className="mx-auto mt-12 max-w-4xl" />
+        </Reveal>
       </div>
     </section>
   );

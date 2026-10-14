@@ -66,7 +66,7 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.75 }}
             className="mt-6 max-w-xl text-lg text-slate-300"
           >
-            Élèves, planning des leçons, paiements en plusieurs fois et rappels WhatsApp automatiques. Fini le
+            Élèves, planning des leçons, paiements en plusieurs fois, reçus et rappels WhatsApp. Fini le
             cahier, fini les impayés oubliés.
           </motion.p>
 

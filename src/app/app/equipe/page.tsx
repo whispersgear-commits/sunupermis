@@ -130,7 +130,12 @@ export default async function EquipePage({ searchParams }: { searchParams: Promi
                     {isOwner && m.user_id !== ctx.userId && (
                       <form action={removeMember}>
                         <input type="hidden" name="user_id" value={m.user_id} />
-                        <PendingButton className="text-xs font-semibold text-muted hover:text-red-600">Retirer</PendingButton>
+                        <PendingButton
+                          confirm={`Retirer ${m.full_name ?? m.email ?? "ce compte"} de l'équipe ? Il ne pourra plus se connecter à l'auto-école.`}
+                          className="text-xs font-semibold text-muted hover:text-red-600"
+                        >
+                          Retirer
+                        </PendingButton>
                       </form>
                     )}
                   </div>

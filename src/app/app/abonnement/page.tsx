@@ -6,7 +6,8 @@ import { PlanPicker } from "@/components/app/plan-picker";
 import { AutoRefresh } from "@/components/app/auto-refresh";
 import { requireContext } from "@/lib/session";
 import { createClient } from "@/lib/supabase/server";
-import { accessOf, PLANS, type PlanId } from "@/lib/plans";
+import { accessOf, FEATURE_INFO, PLANS, type Feature, type PlanId } from "@/lib/plans";
+import { PlanComparison } from "@/components/app/plan-comparison";
 import { money, shortDate } from "@/lib/format";
 import { bictorysConfigured } from "@/lib/bictorys";
 import { parsePlan, settlePayment } from "@/lib/subscription";
@@ -30,7 +31,7 @@ const STATUS = {
   failed: { label: "Échoué", tone: "bad" },
 } as const;
 
-type Params = { expire?: string; paiement?: string; ref?: string; plan?: string; mois?: string; bienvenue?: string };
+type Params = { fonction?: string; expire?: string; paiement?: string; ref?: string; plan?: string; mois?: string; bienvenue?: string };
 
 export default async function AbonnementPage({ searchParams }: { searchParams: Promise<Params> }) {
   const ctx = await requireContext();
@@ -63,6 +64,13 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
     payments = (data ?? []) as SubscriptionPayment[];
   }
 
+  // Nombre de comptes : une formule trop petite pour l'équipe n'est pas proposée.
+  const { count: memberCount } = isOwner
+    ? await supabase.from("memberships").select("user_id", { count: "exact", head: true }).eq("school_id", ctx.school.id)
+    : { count: 1 };
+  // Arrivée depuis une fonction réservée (« Export CSV : formule Pro »).
+  const feature = params.fonction && params.fonction in FEATURE_INFO ? (params.fonction as Feature) : null;
+
   const support = normalizePhone(process.env.SUPPORT_WHATSAPP || "221782932433");
   const contactHref = support ? `https://wa.me/${support.replace(/^\+/, "")}` : null;
   // Avant le premier paiement, on reprend la formule choisie à l'inscription.
@@ -71,7 +79,7 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
     const { data } = await supabase.auth.getUser();
     signupChoice = (data.user?.user_metadata ?? {}) as typeof signupChoice;
   }
-  const chosenPlan = parsePlan(params.plan) ?? parsePlan(signupChoice.plan) ?? ctx.school.plan;
+  const chosenPlan = parsePlan(params.plan) ?? (feature ? FEATURE_INFO[feature].plan : null) ?? parsePlan(signupChoice.plan) ?? ctx.school.plan;
   const chosenMonths = (params.mois ?? String(signupChoice.plan_months ?? "")) === "12" ? 12 : 1;
 
   return (
@@ -95,6 +103,18 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
       {params.paiement === "ok" && settled === "failed" && (
         <Notice tone="bad" icon={<XCircle className="h-5 w-5" />}>
           Bictorys indique que ce paiement n'a pas abouti. Aucun abonnement n'a été activé ; vous pouvez réessayer.
+        </Notice>
+      )}
+      {feature && (
+        <Notice tone="good" icon={<Lock className="h-5 w-5" />}>
+          {FEATURE_INFO[feature].label} : disponible avec la formule {PLANS[FEATURE_INFO[feature].plan].name}
+          {FEATURE_INFO[feature].plan === "pro" ? " et Multi-agences" : ""}. Votre formule actuelle : {PLANS[ctx.school.plan].name}.
+        </Notice>
+      )}
+      {params.paiement === "trop-de-comptes" && (
+        <Notice tone="bad" icon={<XCircle className="h-5 w-5" />}>
+          Votre équipe compte {memberCount} comptes : cette formule n'en permet pas autant. Retirez d'abord des comptes dans Équipe, ou choisissez une formule
+          plus grande.
         </Notice>
       )}
       {params.paiement === "indisponible" && (
@@ -128,7 +148,7 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
             </p>
           </div>
           {access.active && (
-            <div className="text-right">
+            <div className="sm:text-right">
               <p className="text-sm font-semibold text-muted">{access.trial ? "Accès jusqu'au" : "Payé jusqu'au"}</p>
               <p className="mt-1 text-xl font-extrabold">
                 {shortDate(access.until)} <span className="text-sm font-semibold text-muted">· {access.daysLeft} j</span>
@@ -141,10 +161,18 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
       {isOwner ? (
         <>
           <h2 className="mb-4 text-lg font-bold">{access.active && !access.trial ? "Prolonger ou changer de formule" : "Choisir une formule"}</h2>
-          <PlanPicker current={chosenPlan} defaultMonths={chosenMonths} canPay={bictorysConfigured()} contactHref={contactHref} />
+          <PlanPicker
+            current={access.active && !access.trial ? ctx.school.plan : null}
+            selected={chosenPlan}
+            defaultMonths={chosenMonths}
+            canPay={bictorysConfigured()}
+            contactHref={contactHref}
+            memberCount={memberCount ?? 1}
+          />
           <p className="mt-4 text-xs text-muted">
             Le temps payé s'ajoute à la date de fin actuelle : rien n'est perdu en payant avant l'échéance.
           </p>
+          <PlanComparison className="mt-8" current={access.active && !access.trial ? ctx.school.plan : null} />
 
           <Card className="mt-8" delay={0.1}>
             <CardTitle title="Historique des paiements" />

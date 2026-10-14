@@ -10,11 +10,12 @@ import { createClient } from "@/lib/supabase/server";
 import { requireContext } from "@/lib/session";
 import { addDaysIso, dayMonth, dayShort, longDay, mondayOf, todayIso, weekday } from "@/lib/format";
 import { fold, withParams } from "@/lib/url";
+import { agencyFilter } from "@/lib/agencies";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Planning" };
 
-type Params = { semaine?: string; jour?: string; vue?: string; q?: string; moniteur?: string; voiture?: string; statut?: string; eleve?: string; nouveau?: string };
+type Params = { semaine?: string; jour?: string; vue?: string; q?: string; moniteur?: string; voiture?: string; statut?: string; eleve?: string; nouveau?: string; agence?: string };
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
 const STATUS_FILTERS = [
@@ -41,7 +42,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
 
   let query = supabase
     .from("lessons")
-    .select("*, student:students(id, full_name, phone), instructor:instructors(full_name), vehicle:vehicles(label)")
+    .select("*, student:students(id, full_name, phone, agency), instructor:instructors(full_name), vehicle:vehicles(label)")
     .gte("starts_at", `${monday}T00:00:00Z`)
     .lt("starts_at", `${addDaysIso(monday, 7)}T00:00:00Z`)
     .order("starts_at");
@@ -58,7 +59,8 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
   ]);
 
   const term = fold(params.q?.trim() ?? "");
-  const all = ((lessons ?? []) as LessonWithNames[]).filter((l) => !term || fold(l.student?.full_name ?? "").includes(term));
+  const agency = agencyFilter(ctx.school, params.agence);
+  const all = ((lessons ?? []) as (LessonWithNames & { student: { agency?: string | null } | null })[]).filter((l) => agency.keep(l.student?.agency)).filter((l) => !term || fold(l.student?.full_name ?? "").includes(term));
   const visible = all.filter((l) =>
     statut === "a-venir" ? l.status === "planned" : statut === "faites" ? l.status === "done" : statut === "absences" ? l.status === "missed" : statut === "annulees" ? l.status === "cancelled" : l.status !== "cancelled",
   );
@@ -76,7 +78,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
   const current: Params = { ...params, semaine: monday, nouveau: undefined, eleve: undefined };
   const href = (changes: Partial<Record<keyof Params, string | null>>) => withParams("/app/planning", current, changes);
   const dayLessons = byDay.get(selected) ?? [];
-  const filtered = Boolean(term || params.moniteur || params.voiture || statut);
+  const filtered = Boolean(term || params.moniteur || params.voiture || statut || agency.selected);
 
   return (
     <>
@@ -145,6 +147,7 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
         <div className="flex flex-col gap-2 sm:flex-row">
           <SearchBox placeholder="Rechercher un élève" className="sm:max-w-xs sm:flex-1" />
           <div className="grid grid-cols-2 gap-2 sm:flex">
+            {agency.enabled && <ParamSelect param="agence" label="Agence" options={agency.options} className="col-span-2 sm:col-span-1" />}
             {isStaff && (
               <ParamSelect
                 param="moniteur"

@@ -6,7 +6,7 @@ import { updateStudent } from "@/app/app/actions";
 import { displayPhone } from "@/lib/phone";
 import type { Student } from "@/lib/types";
 
-export function StudentEditForm({ student }: { student: Student }) {
+export function StudentEditForm({ student, agencies = [] }: { student: Student; agencies?: string[] }) {
   return (
     <ActionForm action={updateStudent} className="grid gap-4 sm:grid-cols-2">
       <input type="hidden" name="student_id" value={student.id} />
@@ -28,6 +28,17 @@ export function StudentEditForm({ student }: { student: Student }) {
       <Field label="Leçons de conduite prévues">
         <Input name="hours_planned" type="number" min={0} defaultValue={student.hours_planned} />
       </Field>
+      {agencies.length > 0 && (
+        <Field label="Agence">
+          <Select name="agency" defaultValue={student.agency ?? agencies[0]} required>
+            {agencies.map((a) => (
+              <option key={a} value={a}>
+                {a}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      )}
       <Field label="Notes" className="sm:col-span-2">
         <Textarea name="notes" defaultValue={student.notes ?? ""} placeholder="Disponibilités, remarques…" />
       </Field>

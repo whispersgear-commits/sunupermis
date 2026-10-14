@@ -26,6 +26,7 @@ import { addDaysIso, dayShort, longDay, money, todayIso, weekday } from "@/lib/f
 import { displayPhone } from "@/lib/phone";
 import { lessonReminder, paymentReminder, waLink } from "@/lib/whatsapp";
 import { whatsappConfigured } from "@/lib/whatsapp-api";
+import { can } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 import { sendRemindersNow } from "./actions";
 import type { Balance, Exam, Student } from "@/lib/types";
@@ -68,7 +69,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       .order("exam_date")
       .limit(5),
   ]);
-  const autoSend = isStaff && whatsappConfigured();
+  const autoSend = isStaff && whatsappConfigured() && can(ctx.school, "autoReminders");
 
   const studentList = (students.data ?? []) as Pick<Student, "id" | "full_name" | "phone" | "status">[];
   const byId = new Map(studentList.map((s) => [s.id, s]));

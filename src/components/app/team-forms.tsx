@@ -2,7 +2,7 @@
 
 import { ActionForm, Submit } from "@/components/ui/form";
 import { Input, Select } from "@/components/ui/fields";
-import { addInstructor, addVehicle, updateSchool } from "@/app/app/actions";
+import { addAgency, addInstructor, addVehicle, updateSchool } from "@/app/app/actions";
 import { Field } from "@/components/ui/fields";
 import { displayPhone } from "@/lib/phone";
 
@@ -61,6 +61,18 @@ export function SchoolForm({ school }: { school: { name: string; city: string | 
       <div className="sm:col-span-2">
         <Submit className="w-full sm:w-auto">Enregistrer</Submit>
       </div>
+    </ActionForm>
+  );
+}
+
+/** Ajout d'une agence (formule Multi-agences). */
+export function AgencyForm({ first }: { first: boolean }) {
+  return (
+    <ActionForm action={addAgency} resetOnSuccess className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <Field label={first ? "Première agence" : "Nouvelle agence"} hint={first ? "Vos élèves actuels y seront rattachés." : undefined} className="flex-1">
+        <Input name="name" placeholder="Ex. Agence Thiès centre" required minLength={2} maxLength={40} />
+      </Field>
+      <Submit className="sm:mb-[1px]">Ajouter</Submit>
     </ActionForm>
   );
 }

@@ -10,6 +10,8 @@ export interface School {
   trial_ends_at: string;
   paid_until: string | null;
   whatsapp_auto: boolean;
+  /** Agences déclarées (formule Multi-agences). */
+  agencies: string[];
 }
 
 export interface Student {
@@ -23,6 +25,7 @@ export interface Student {
   notes: string | null;
   created_at: string;
   file_no: number | null;
+  agency: string | null;
 }
 
 export interface Balance {

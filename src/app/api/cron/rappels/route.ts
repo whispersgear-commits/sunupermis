@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { accessOf } from "@/lib/plans";
+import { accessOf, can } from "@/lib/plans";
 import { sendLessonReminders, sendPaymentReminders } from "@/lib/reminders";
 import { whatsappConfigured } from "@/lib/whatsapp-api";
 import type { School } from "@/lib/types";
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
   const results = [];
   for (const school of (schools ?? []) as School[]) {
-    if (!accessOf(school).active) continue;
+    if (!accessOf(school).active || !can(school, "autoReminders")) continue;
     const lessons = await sendLessonReminders(db, school, tomorrow);
     const payments = await sendPaymentReminders(db, school);
     results.push({ school: school.id, lessons, payments });

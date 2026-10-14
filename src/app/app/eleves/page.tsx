@@ -8,12 +8,13 @@ import { requireContext } from "@/lib/session";
 import { money } from "@/lib/format";
 import { displayPhone } from "@/lib/phone";
 import { fold, withParams } from "@/lib/url";
+import { agencyFilter } from "@/lib/agencies";
 import { STATUS_LABEL, type Balance, type Student } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Élèves" };
 
 const STATUS_TONE = { active: "info", code_ok: "warn", licensed: "good", dropped: "neutral" } as const;
-type Params = { q?: string; filtre?: string; tri?: string };
+type Params = { q?: string; filtre?: string; tri?: string; agence?: string };
 
 export default async function ElevesPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
@@ -39,7 +40,8 @@ export default async function ElevesPage({ searchParams }: { searchParams: Promi
   // Recherche : nom (sans tenir compte des accents) ou numéro.
   const term = fold(params.q?.trim() ?? "");
   const digits = (params.q ?? "").replace(/\D/g, "");
-  const searched = all.filter((s) => !term || fold(s.full_name).includes(term) || (digits.length >= 3 && s.phone.includes(digits)));
+  const agency = agencyFilter(ctx.school, params.agence);
+  const searched = all.filter((s) => agency.keep(s.agency)).filter((s) => !term || fold(s.full_name).includes(term) || (digits.length >= 3 && s.phone.includes(digits)));
 
   const FILTERS = [
     { key: "", label: "En cours", test: (s: (typeof all)[number]) => s.status === "active" || s.status === "code_ok" },
@@ -68,7 +70,7 @@ export default async function ElevesPage({ searchParams }: { searchParams: Promi
     else groups.push({ letter, items: [s] });
   }
 
-  const current = { q: params.q, filtre: params.filtre, tri: params.tri };
+  const current = { q: params.q, filtre: params.filtre, tri: params.tri, agence: params.agence };
   const sortOptions = [
     { value: "", label: "Nom (A → Z)" },
     { value: "recent", label: "Inscription récente" },
@@ -97,6 +99,7 @@ export default async function ElevesPage({ searchParams }: { searchParams: Promi
 
       <div className="mb-4 flex flex-col gap-2 sm:flex-row">
         <SearchBox placeholder="Nom ou téléphone" className="sm:max-w-md sm:flex-1" />
+        {agency.enabled && <ParamSelect param="agence" label="Agence" options={agency.options} className="w-full sm:w-auto" />}
         <ParamSelect param="tri" label="Trier par" options={sortOptions} className="w-full sm:w-auto" />
       </div>
       <Tabs
@@ -138,6 +141,7 @@ export default async function ElevesPage({ searchParams }: { searchParams: Promi
                           <span className="block truncate font-bold">{s.full_name}</span>
                           <span className="block truncate text-xs text-muted">
                             {displayPhone(s.phone)} · Permis {s.license}
+                            {agency.enabled && s.agency && !agency.selected && ` · ${s.agency}`}
                           </span>
                         </span>
                       </span>

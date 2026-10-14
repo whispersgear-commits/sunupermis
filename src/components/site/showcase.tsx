@@ -35,7 +35,7 @@ export function Showcase() {
             </div>
             <div className="relative aspect-[16/10]">
               <Image
-                src="/screens/d-planning.webp"
+                src="/screens/d-planning-v2.webp"
                 alt="Planning de la semaine : chaque jour, les leçons avec l'heure, l'élève et le moniteur"
                 fill
                 sizes="(max-width: 1024px) 100vw, 900px"

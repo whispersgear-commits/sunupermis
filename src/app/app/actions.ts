@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { addMonths, formatISO } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { requireContext, requireOwner, requireStaff } from "@/lib/session";
-import { PLANS, userLimit } from "@/lib/plans";
+import { FEATURE_INFO, PLANS, can, userLimit, type Feature } from "@/lib/plans";
 import { whatsappConfigured } from "@/lib/whatsapp-api";
 import { sendLessonReminders, sendPaymentReminders } from "@/lib/reminders";
 import { normalizePhone } from "@/lib/phone";
@@ -21,6 +21,15 @@ import type { FormState } from "@/components/ui/form";
  */
 
 const text = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
+
+/** Message quand la formule n'inclut pas la fonction demandée. */
+const notInPlan = (f: Feature) => `${FEATURE_INFO[f].label} : disponible avec la formule ${PLANS[FEATURE_INFO[f].plan].name}.`;
+
+/** Agence choisie dans le formulaire, seulement si elle existe pour l'école. */
+function agencyOf(school: { agencies?: string[] | null; plan: "essentiel" | "pro" | "multi"; trial_ends_at: string; paid_until: string | null }, fd: FormData): string | null {
+  const a = String(fd.get("agency") ?? "").trim();
+  return can(school, "agencies") && (school.agencies ?? []).includes(a) ? a : null;
+}
 
 // ---------------------------------------------------------------------------
 // Élèves
@@ -48,6 +57,7 @@ export async function createStudent(_s: FormState, fd: FormData): Promise<FormSt
       package_price: price,
       hours_planned: parseAmount(fd.get("hours_planned")) || 20,
       notes: text(fd, "notes") || null,
+      agency: agencyOf(ctx.school, fd),
     })
     .select("id")
     .single();
@@ -102,6 +112,7 @@ export async function updateStudent(_s: FormState, fd: FormData): Promise<FormSt
       license: ["A", "B", "C", "D", "E"].includes(license) ? license : "B",
       hours_planned: Math.max(0, parseAmount(fd.get("hours_planned"))),
       notes: text(fd, "notes") || null,
+      ...(fd.has("agency") ? { agency: agencyOf(ctx.school, fd) } : {}),
     })
     .eq("id", id)
     .eq("school_id", ctx.school.id);
@@ -373,13 +384,49 @@ export async function removeMember(fd: FormData) {
 
 export async function setWhatsappAuto(fd: FormData) {
   const ctx = await requireOwner();
+  const on = text(fd, "on") === "1";
+  // Les rappels automatiques sont réservés aux formules Pro et Multi-agences.
+  if (on && !can(ctx.school, "autoReminders")) return;
   const supabase = await createClient();
-  await supabase.from("schools").update({ whatsapp_auto: text(fd, "on") === "1" }).eq("id", ctx.school.id);
+  await supabase.from("schools").update({ whatsapp_auto: on }).eq("id", ctx.school.id);
+  revalidatePath("/app", "layout");
+}
+
+// ---------------------------------------------------------------------------
+// Agences (formule Multi-agences)
+// ---------------------------------------------------------------------------
+
+export async function addAgency(_s: FormState, fd: FormData): Promise<FormState> {
+  const ctx = await requireOwner();
+  if (!can(ctx.school, "agencies")) return { error: notInPlan("agencies") };
+  const name = text(fd, "name").replace(/\s+/g, " ").slice(0, 40);
+  if (name.length < 2) return { error: "Indiquez le nom de l'agence." };
+  const list = ctx.school.agencies ?? [];
+  if (list.some((a) => a.toLowerCase() === name.toLowerCase())) return { error: "Cette agence existe déjà." };
+  if (list.length >= 20) return { error: "20 agences au plus." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("schools").update({ agencies: [...list, name] }).eq("id", ctx.school.id);
+  if (error) return { error: "Agence non enregistrée." };
+  // Première agence : les élèves existants y sont rattachés.
+  if (list.length === 0) await supabase.from("students").update({ agency: name }).eq("school_id", ctx.school.id).is("agency", null);
+  revalidatePath("/app", "layout");
+  return { success: `Agence « ${name} » ajoutée.` };
+}
+
+export async function removeAgency(fd: FormData) {
+  const ctx = await requireOwner();
+  if (!can(ctx.school, "agencies")) return;
+  const name = text(fd, "name");
+  const supabase = await createClient();
+  await supabase.from("schools").update({ agencies: (ctx.school.agencies ?? []).filter((a) => a !== name) }).eq("id", ctx.school.id);
+  // Les élèves de l'agence retirée restent, sans agence.
+  await supabase.from("students").update({ agency: null }).eq("school_id", ctx.school.id).eq("agency", name);
   revalidatePath("/app", "layout");
 }
 
 export async function sendRemindersNow(_s: FormState, fd: FormData): Promise<FormState> {
   const ctx = await requireStaff();
+  if (!can(ctx.school, "autoReminders")) return { error: notInPlan("autoReminders") };
   if (!whatsappConfigured()) return { error: "L'envoi automatique WhatsApp n'est pas encore configuré." };
   const supabase = await createClient();
   const date = text(fd, "date") || new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);

@@ -11,7 +11,7 @@ import { dayMonth, groupDigits, money, todayIso } from "@/lib/format";
  * tape le prix et le nombre de tranches : la secrétaire voit ce que l'élève
  * va payer, et quand, avant d'enregistrer.
  */
-export function StudentForm({ action }: { action: (s: FormState, fd: FormData) => Promise<FormState> }) {
+export function StudentForm({ action, agencies = [] }: { action: (s: FormState, fd: FormData) => Promise<FormState>; agencies?: string[] }) {
   const [price, setPrice] = useState("150 000");
   const [parts, setParts] = useState("3");
   const [first, setFirst] = useState(todayIso());
@@ -53,6 +53,17 @@ export function StudentForm({ action }: { action: (s: FormState, fd: FormData) =
             <Field label="Leçons de conduite prévues">
               <Input name="hours_planned" type="number" min={0} defaultValue={20} />
             </Field>
+            {agencies.length > 0 && (
+              <Field label="Agence">
+                <Select name="agency" defaultValue={agencies[0]} required>
+                  {agencies.map((a) => (
+                    <option key={a} value={a}>
+                      {a}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            )}
             <Field label="Notes" className="sm:col-span-2">
               <Textarea name="notes" placeholder="Disponibilités, remarques…" />
             </Field>

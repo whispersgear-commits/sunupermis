@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { animate, motion, useInView } from "motion/react";
+import { animate, motion, useInView, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { money } from "@/lib/format";
 
@@ -55,12 +55,18 @@ export function CardTitle({ title, action }: { title: React.ReactNode; action?: 
 export function AnimatedNumber({ value, format = "number" }: { value: number; format?: "number" | "money" }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
+  const reduce = useReducedMotion();
   const [shown, setShown] = useState(0);
   useEffect(() => {
     if (!inView) return;
+    // Mouvements réduits : la valeur s'affiche directement.
+    if (reduce) {
+      setShown(value);
+      return;
+    }
     const controls = animate(0, value, { duration: 0.6, ease, onUpdate: (v) => setShown(Math.round(v)) });
     return () => controls.stop();
-  }, [inView, value]);
+  }, [inView, value, reduce]);
   return <span ref={ref}>{format === "money" ? money(shown) : shown}</span>;
 }
 

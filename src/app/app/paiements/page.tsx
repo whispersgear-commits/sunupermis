@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AlertTriangle, CalendarClock, ChevronLeft, ChevronRight, Download, MessageCircle, Plus, Send, Wallet } from "lucide-react";
+import { AlertTriangle, CalendarClock, ChevronLeft, ChevronRight, Download, Lock, MessageCircle, Plus, Send, Wallet } from "lucide-react";
 import { PrintButton } from "@/components/documents/print-button";
 import { Avatar, Card, Empty, PageHeader, Stat } from "@/components/app/ui";
 import { ParamSelect, SearchBox, Tabs } from "@/components/app/filters";
+import { PlanLock } from "@/components/app/plan-lock";
+import { agencyFilter } from "@/lib/agencies";
+import { can } from "@/lib/plans";
 import { PaymentForm } from "@/components/app/student-panels";
 import { METHOD_COLOR, PaymentRow } from "@/components/app/payment-row";
 import { Sheet } from "@/components/ui/sheet";
@@ -22,7 +25,7 @@ import { sendRemindersNow } from "../actions";
 
 export const metadata: Metadata = { title: "Paiements" };
 
-type Params = { onglet?: string; periode?: string; methode?: string; q?: string; encaisser?: string; jour?: string };
+type Params = { agence?: string; onglet?: string; periode?: string; methode?: string; q?: string; encaisser?: string; jour?: string };
 
 export default async function PaiementsPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
@@ -31,18 +34,22 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
   const range = periodRange(params.periode);
   const today = todayIso();
 
-  let paymentsQuery = supabase.from("payments").select("*, student:students(id, full_name, phone)").order("paid_at", { ascending: false }).limit(1000);
+  let paymentsQuery = supabase.from("payments").select("*, student:students(id, full_name, phone, agency)").order("paid_at", { ascending: false }).limit(1000);
   if (range.from) paymentsQuery = paymentsQuery.gte("paid_at", `${range.from}T00:00:00Z`);
   if (range.to) paymentsQuery = paymentsQuery.lt("paid_at", `${range.to}T00:00:00Z`);
 
   const [{ data: payments }, { data: balances }, { data: students }, { data: installments }] = await Promise.all([
     paymentsQuery,
     supabase.from("student_balances").select("*"),
-    supabase.from("students").select("id, full_name, phone, status").neq("status", "dropped").order("full_name"),
+    supabase.from("students").select("id, full_name, phone, status, agency").neq("status", "dropped").order("full_name"),
     supabase.from("installments").select("*").order("due_date"),
   ]);
 
-  const studentMap = new Map((students ?? []).map((s) => [s.id, s]));
+  const agency = agencyFilter(ctx.school, params.agence);
+  const canExport = can(ctx.school, "export");
+  const byPersonAllowed = can(ctx.school, "cashByPerson");
+  // Avec le filtre agence, seuls les élèves de l'agence comptent partout.
+  const studentMap = new Map((students ?? []).filter((s) => agency.keep(s.agency)).map((s) => [s.id, s]));
   const balanceRows = (balances ?? []) as Balance[];
   const balanceOf = new Map(balanceRows.map((b) => [b.student_id, b]));
   const term = fold(params.q?.trim() ?? "");
@@ -73,7 +80,7 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
   const upcomingTotal = upcoming.reduce((sum, i) => sum + i.amount, 0);
 
   // Encaissements de la période, filtrés
-  const allPayments = (payments ?? []) as (Payment & { student: { id: string; full_name: string; phone: string } | null })[];
+  const allPayments = ((payments ?? []) as (Payment & { student: { id: string; full_name: string; phone: string; agency: string | null } | null })[]).filter((p) => agency.keep(p.student?.agency));
   // Les paiements annulés restent affichés, barrés, mais ne comptent pas.
   const valid = allPayments.filter((p) => !p.cancelled_at);
   const periodTotal = valid.reduce((sum, p) => sum + p.amount, 0);
@@ -101,7 +108,7 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
       ? await Promise.all([
           supabase
             .from("payments")
-            .select("*, student:students(id, full_name, phone)")
+            .select("*, student:students(id, full_name, phone, agency)")
             .gte("paid_at", `${cashDay}T00:00:00Z`)
             .lt("paid_at", `${addDaysIso(cashDay, 1)}T00:00:00Z`)
             .order("paid_at"),
@@ -109,7 +116,7 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
         ])
       : [{ data: [] }, { data: [] }];
   const memberName = new Map(((members ?? []) as { user_id: string; full_name: string | null; email: string | null }[]).map((m) => [m.user_id, m.full_name ?? m.email ?? "—"]));
-  const dayList = (dayPayments ?? []) as (Payment & { student: { id: string; full_name: string; phone: string } | null })[];
+  const dayList = ((dayPayments ?? []) as (Payment & { student: { id: string; full_name: string; phone: string; agency: string | null } | null })[]).filter((p) => agency.keep(p.student?.agency));
   const dayValid = dayList.filter((p) => !p.cancelled_at);
   const dayTotal = dayValid.reduce((sum, p) => sum + p.amount, 0);
   const dayByMethod = (Object.keys(METHOD_LABEL) as Payment["method"][]).map((m) => ({ m, total: dayValid.filter((p) => p.method === m).reduce((sum, p) => sum + p.amount, 0), n: dayValid.filter((p) => p.method === m).length }));
@@ -141,9 +148,22 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
         description="Encaissements, retards et échéances."
         actions={
           <>
-            <a href={`/app/paiements/export${params.periode ? `?periode=${params.periode}` : ""}`} className="inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-4 text-sm font-semibold transition hover:border-brand-600 hover:text-brand-700">
-              <Download className="h-4 w-4" /> <span className="hidden sm:inline">Exporter</span> CSV
-            </a>
+            {canExport ? (
+              <a
+                href={withParams("/app/paiements/export", { periode: params.periode, agence: agency.selected ?? undefined }, {})}
+                className="inline-flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-4 text-sm font-semibold transition hover:border-brand-600 hover:text-brand-700"
+              >
+                <Download className="h-4 w-4" /> <span className="hidden sm:inline">Exporter</span> CSV
+              </a>
+            ) : (
+              <a
+                href="/app/abonnement?fonction=export"
+                title="Export CSV : formule Pro"
+                className="inline-flex h-10 items-center gap-2 rounded-xl border border-dashed border-line px-4 text-sm font-semibold text-muted transition hover:border-amber-400 hover:text-ink"
+              >
+                <Lock className="h-4 w-4" /> CSV
+              </a>
+            )}
             <Sheet
               title="Encaisser un paiement"
               defaultOpen={Boolean(params.encaisser)}
@@ -162,6 +182,11 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
 
       </div>
 
+      {agency.enabled && (
+        <div className="mb-4 print:hidden">
+          <ParamSelect param="agence" label="Agence" options={agency.options} className="w-full sm:w-auto" />
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 print:hidden">
         <Stat label={`Encaissé · ${range.label.toLowerCase()}`} value={periodTotal} format="money" icon={<Wallet className="h-4 w-4" />} tone="brand" hint={`${valid.length} paiement${valid.length > 1 ? "s" : ""}`} />
         <Stat label="En retard" value={lateTotal} format="money" icon={<AlertTriangle className="h-4 w-4" />} tone="bad" hint={`${overdue.length} élève${overdue.length > 1 ? "s" : ""}`} delay={0.05} href={href({ onglet: "retards" })} />
@@ -247,7 +272,7 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
 
       {tab === "retards" && (
         <Card className="mt-5">
-          {whatsappConfigured() && overdue.length > 0 && (
+          {whatsappConfigured() && can(ctx.school, "autoReminders") && overdue.length > 0 && (
             <ActionForm action={sendRemindersNow} className="flex flex-col gap-2 border-b border-line p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
               <input type="hidden" name="payments" value="only" />
               <p className="text-sm text-muted">Chaque élève en retard reçoit une relance WhatsApp (une fois par semaine au plus).</p>
@@ -360,7 +385,9 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
                 <h2 className="font-bold">Par personne</h2>
                 <p className="text-xs text-muted">Qui a encaissé quoi : chaque reçu porte le nom de la personne connectée.</p>
               </div>
-              {byPerson.length ? (
+              {!byPersonAllowed ? (
+                <PlanLock feature="cashByPerson" className="m-5" text="Quand plusieurs personnes encaissent, voyez ce que chacune doit remettre." />
+              ) : byPerson.length ? (
                 <ul className="divide-y divide-line">
                   {byPerson.map((x) => (
                     <li key={x.name} className="px-5 py-3 text-sm">
@@ -377,7 +404,7 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
                   ))}
                 </ul>
               ) : (
-                <p className="px-5 py-6 text-sm text-muted">—</p>
+                <p className="px-5 py-6 text-sm text-muted">Personne n'a encaissé ce jour-là.</p>
               )}
             </Card>
           </div>

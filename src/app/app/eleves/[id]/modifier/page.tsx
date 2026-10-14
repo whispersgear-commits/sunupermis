@@ -6,6 +6,7 @@ import { Card, PageHeader } from "@/components/app/ui";
 import { StudentEditForm } from "@/components/app/student-edit-form";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/session";
+import { can } from "@/lib/plans";
 import { money } from "@/lib/format";
 import type { Student } from "@/lib/types";
 
@@ -13,7 +14,8 @@ export const metadata: Metadata = { title: "Modifier l'élève" };
 
 export default async function ModifierElevePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await requireStaff();
+  const ctx = await requireStaff();
+  const agencies = can(ctx.school, "agencies") ? ctx.school.agencies ?? [] : [];
   const supabase = await createClient();
   const { data } = await supabase.from("students").select("*").eq("id", id).maybeSingle();
   if (!data) notFound();
@@ -26,7 +28,7 @@ export default async function ModifierElevePage({ params }: { params: Promise<{ 
       </Link>
       <PageHeader title="Modifier l'élève" description="Coordonnées, type de permis et suivi." />
       <Card className="max-w-2xl p-5 sm:p-6">
-        <StudentEditForm student={s} />
+        <StudentEditForm student={s} agencies={agencies} />
         <p className="mt-5 border-t border-line pt-4 text-xs text-muted">
           Forfait : {money(s.package_price)}. Le forfait et l'échéancier ne se modifient pas ici, pour ne pas fausser les paiements déjà enregistrés.
         </p>

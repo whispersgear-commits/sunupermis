@@ -5,13 +5,7 @@ import { motion } from "motion/react";
 import { Check, Loader2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { money } from "@/lib/format";
-import { PLANS, planPrice, type PlanId } from "@/lib/plans";
-
-const FEATURES: Record<PlanId, string[]> = {
-  essentiel: ["Élèves, paiements, planning", "Reçus avec QR code", "Rappels WhatsApp", "1 compte"],
-  pro: ["Tout l'Essentiel", "Jusqu'à 5 comptes (secrétaire, moniteurs)", "Caisse du jour par personne", "Rappels automatiques chaque soir"],
-  multi: ["Tout le Pro", "Comptes illimités", "Plusieurs agences"],
-};
+import { PLAN_HIGHLIGHTS as FEATURES, PLANS, planPrice, type PlanId } from "@/lib/plans";
 
 /**
  * Choix de la formule et de la durée, puis paiement sur la page sécurisée
@@ -20,14 +14,20 @@ const FEATURES: Record<PlanId, string[]> = {
  */
 export function PlanPicker({
   current,
+  selected,
   defaultMonths = 1,
   canPay,
   contactHref,
+  memberCount = 1,
 }: {
-  current: PlanId;
+  /** Formule payée en cours, s'il y en a une. */
+  current: PlanId | null;
+  /** Formule mise en avant (choix d'inscription, fonction demandée…). */
+  selected: PlanId;
   defaultMonths?: 1 | 12;
   canPay: boolean;
   contactHref: string | null;
+  memberCount?: number;
 }) {
   const [months, setMonths] = useState<1 | 12>(defaultMonths);
   const [going, setGoing] = useState<PlanId | null>(null);
@@ -53,7 +53,9 @@ export function PlanPicker({
       <div className="grid gap-4 md:grid-cols-3">
         {(Object.keys(PLANS) as PlanId[]).map((id, i) => {
           const plan = PLANS[id];
-          const highlighted = id === current;
+          const highlighted = id === selected;
+          // Formule trop petite pour l'équipe actuelle.
+          const tooSmall = plan.users !== null && memberCount > plan.users;
           return (
             <motion.div
               key={id}
@@ -67,9 +69,13 @@ export function PlanPicker({
             >
               <div className="flex items-center justify-between">
                 <p className="font-bold">{plan.name}</p>
-                {highlighted && <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-bold text-brand-700">Choisie</span>}
+                {id === current ? (
+                  <span className="rounded-full bg-brand-600 px-2.5 py-0.5 text-xs font-bold text-white">Formule actuelle</span>
+                ) : id === "pro" ? (
+                  <span className="rounded-full bg-lane px-2.5 py-0.5 text-xs font-bold text-asphalt">Recommandé</span>
+                ) : null}
               </div>
-              <p className="mt-1 text-sm text-muted">{plan.description}</p>
+              <p className="mt-1 text-sm text-muted">{plan.pitch}</p>
               <p className="mt-4 text-3xl font-extrabold tracking-tight">{money(planPrice(id, months))}</p>
               <p className="text-xs text-muted">{months === 1 ? "par mois" : `par an, soit ${money(Math.round(planPrice(id, 12) / 12))} / mois`}</p>
               <ul className="my-5 space-y-2 text-sm">
@@ -81,7 +87,11 @@ export function PlanPicker({
                 ))}
               </ul>
               <div className="mt-auto">
-                {canPay ? (
+                {tooSmall ? (
+                  <p className="rounded-xl bg-bg px-3 py-2.5 text-center text-xs text-muted">
+                    Votre équipe compte {memberCount} comptes : cette formule en permet {plan.users}.
+                  </p>
+                ) : canPay ? (
                   <a
                     href={`/app/abonnement/payer?plan=${id}&mois=${months}`}
                     rel="nofollow"
@@ -94,7 +104,7 @@ export function PlanPicker({
                     )}
                   >
                     {going === id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
-                    Payer {money(planPrice(id, months))}
+                    {!current ? "Payer" : id === current ? "Prolonger ·" : `Passer à ${plan.name} ·`} {money(planPrice(id, months))}
                   </a>
                 ) : contactHref ? (
                   <a

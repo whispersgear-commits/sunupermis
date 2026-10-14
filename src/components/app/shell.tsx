@@ -15,6 +15,7 @@ import {
   Plus,
   Search,
   Settings,
+  TrendingDown,
   UserPlus,
   Users,
   Wallet,
@@ -49,6 +50,7 @@ const NAV: NavItem[] = [
   { href: "/app/eleves", label: "Élèves", icon: Users, tab: true, roles: ALL },
   { href: "/app/planning", label: "Planning", icon: CalendarDays, tab: true, roles: ALL },
   { href: "/app/paiements", label: "Paiements", icon: Wallet, tab: true, roles: STAFF },
+  { href: "/app/depenses", label: "Dépenses et résultat", icon: TrendingDown, roles: STAFF },
   { href: "/app/equipe", label: "Équipe et voitures", icon: Car, roles: STAFF },
   { href: "/app/abonnement", label: "Abonnement", icon: CreditCard, roles: ["owner"] },
   { href: "/app/reglages", label: "Réglages", icon: Settings, roles: ALL },
@@ -58,6 +60,7 @@ const QUICK = [
   { href: "/app/eleves/nouveau", label: "Nouvel élève", hint: "Inscription et échéancier", icon: UserPlus, tone: "bg-brand-50 text-brand-700 dark:bg-brand-900/50 dark:text-brand-200" },
   { href: "/app/planning?nouveau=1", label: "Planifier une leçon", hint: "Conduite ou code", icon: CalendarPlus, tone: "bg-sky-50 text-sky-700 dark:bg-sky-900/40 dark:text-sky-200" },
   { href: "/app/paiements?encaisser=1", label: "Encaisser un paiement", hint: "Wave, Orange Money, espèces", icon: Wallet, tone: "bg-amber-50 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200" },
+  { href: "/app/depenses?ajouter=1", label: "Ajouter une dépense", hint: "Carburant, salaires, réparations", icon: TrendingDown, tone: "bg-red-50 text-red-700 dark:bg-red-900/40 dark:text-red-200" },
 ];
 
 /**

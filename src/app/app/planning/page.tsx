@@ -53,9 +53,9 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
 
   const [{ data: lessons }, { data: students }, { data: instructors }, { data: vehicles }] = await Promise.all([
     query,
-    isStaff ? supabase.from("students").select("id, full_name").in("status", ["active", "code_ok"]).order("full_name") : Promise.resolve({ data: [] }),
-    supabase.from("instructors").select("id, full_name").eq("active", true).order("full_name"),
-    supabase.from("vehicles").select("id, label").eq("active", true).order("label"),
+    isStaff ? supabase.from("students").select("id, full_name, agency").in("status", ["active", "code_ok"]).order("full_name") : Promise.resolve({ data: [] }),
+    supabase.from("instructors").select("id, full_name, agency").eq("active", true).order("full_name"),
+    supabase.from("vehicles").select("id, label, agency").eq("active", true).order("label"),
   ]);
 
   const term = fold(params.q?.trim() ?? "");
@@ -98,9 +98,9 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
               }
             >
               <LessonForm
-                students={(students ?? []).map((s) => ({ id: s.id, label: s.full_name }))}
-                instructors={(instructors ?? []).map((i) => ({ id: i.id, label: i.full_name }))}
-                vehicles={(vehicles ?? []).map((v) => ({ id: v.id, label: v.label }))}
+                students={(students ?? []).filter((s) => agency.keep(s.agency)).map((s) => ({ id: s.id, label: s.full_name }))}
+                instructors={(instructors ?? []).filter((i) => agency.keep(i.agency)).map((i) => ({ id: i.id, label: i.full_name }))}
+                vehicles={(vehicles ?? []).filter((v) => agency.keep(v.agency)).map((v) => ({ id: v.id, label: v.label }))}
                 defaultStudent={params.eleve}
                 defaultDate={selected < today ? today : selected}
               />
@@ -152,10 +152,10 @@ export default async function PlanningPage({ searchParams }: { searchParams: Pro
               <ParamSelect
                 param="moniteur"
                 label="Moniteur"
-                options={[{ value: "", label: "Moniteurs" }, ...(instructors ?? []).map((i) => ({ value: i.id, label: i.full_name }))]}
+                options={[{ value: "", label: "Moniteurs" }, ...(instructors ?? []).filter((i) => agency.keep(i.agency)).map((i) => ({ value: i.id, label: i.full_name }))]}
               />
             )}
-            <ParamSelect param="voiture" label="Voiture" options={[{ value: "", label: "Voitures" }, ...(vehicles ?? []).map((v) => ({ value: v.id, label: v.label }))]} />
+            <ParamSelect param="voiture" label="Voiture" options={[{ value: "", label: "Voitures" }, ...(vehicles ?? []).filter((v) => agency.keep(v.agency)).map((v) => ({ value: v.id, label: v.label }))]} />
           </div>
         </div>
         <Tabs id="planning-statut" items={STATUS_FILTERS.map((f) => ({ href: href({ statut: f.key || null }), label: f.label, active: statut === f.key }))} />

@@ -12,6 +12,7 @@ import {
   GraduationCap,
   MessageCircle,
   Phone,
+  Scale,
   Send,
   UserPlus,
   Users,
@@ -27,21 +28,26 @@ import { displayPhone } from "@/lib/phone";
 import { lessonReminder, paymentReminder, waLink } from "@/lib/whatsapp";
 import { whatsappConfigured } from "@/lib/whatsapp-api";
 import { can } from "@/lib/plans";
+import { agencyFilter } from "@/lib/agencies";
+import { ParamSelect } from "@/components/app/filters";
 import { cn } from "@/lib/utils";
 import { sendRemindersNow } from "./actions";
 import type { Balance, Exam, Student } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Accueil" };
 
-const LESSON_SELECT = "*, student:students(id, full_name, phone), instructor:instructors(full_name), vehicle:vehicles(label)";
+const LESSON_SELECT = "*, student:students(id, full_name, phone, agency), instructor:instructors(full_name), vehicle:vehicles(label)";
 
 function greeting(hourUtc: number) {
   return hourUtc < 12 ? "Bonjour" : hourUtc < 18 ? "Bon après-midi" : "Bonsoir";
 }
 
-export default async function Dashboard({ searchParams }: { searchParams: Promise<{ bienvenue?: string }> }) {
-  const { bienvenue } = await searchParams;
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ bienvenue?: string; agence?: string }> }) {
+  const { bienvenue, agence } = await searchParams;
   const ctx = await requireContext();
+  // Multi-agences : tout le tableau de bord peut se restreindre à une agence.
+  const agency = agencyFilter(ctx.school, agence);
+  const isOwner = ctx.role === "owner";
   const supabase = await createClient();
 
   const today = todayIso();
@@ -54,24 +60,26 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     return mine ? q.eq("instructor_id", mine) : q;
   };
 
-  const [todayLessons, tomorrowLessons, students, balances, monthPayments, exams] = await Promise.all([
+  const monthStart = startOfMonth(new Date()).toISOString();
+  const [todayLessons, tomorrowLessons, students, balances, monthPayments, exams, monthExpenses] = await Promise.all([
     lessonsBetween(today, tomorrow).neq("status", "cancelled"),
     lessonsBetween(tomorrow, addDaysIso(today, 2)).eq("status", "planned"),
-    supabase.from("students").select("id, full_name, phone, status").neq("status", "dropped"),
+    supabase.from("students").select("id, full_name, phone, status, agency").neq("status", "dropped"),
     isStaff ? supabase.from("student_balances").select("*") : Promise.resolve({ data: [] }),
-    isStaff ? supabase.from("payments").select("amount").is("cancelled_at", null).gte("paid_at", startOfMonth(new Date()).toISOString()) : Promise.resolve({ data: [] }),
+    isStaff ? supabase.from("payments").select("amount, student:students(agency)").is("cancelled_at", null).gte("paid_at", monthStart) : Promise.resolve({ data: [] }),
     supabase
       .from("exams")
-      .select("*, student:students(id, full_name)")
+      .select("*, student:students(id, full_name, agency)")
       .eq("result", "pending")
       .gte("exam_date", today)
       .lte("exam_date", addDaysIso(today, 30))
       .order("exam_date")
-      .limit(5),
+      .limit(20),
+    isOwner ? supabase.from("expenses").select("amount, agency").gte("spent_on", monthStart.slice(0, 10)) : Promise.resolve({ data: [] }),
   ]);
   const autoSend = isStaff && whatsappConfigured() && can(ctx.school, "autoReminders");
 
-  const studentList = (students.data ?? []) as Pick<Student, "id" | "full_name" | "phone" | "status">[];
+  const studentList = ((students.data ?? []) as Pick<Student, "id" | "full_name" | "phone" | "status" | "agency">[]).filter((s) => agency.keep(s.agency));
   const byId = new Map(studentList.map((s) => [s.id, s]));
   const balanceRows = (balances.data ?? []) as Balance[];
 
@@ -81,11 +89,17 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     .filter((b) => b.late > 0 && b.student)
     .sort((a, b) => b.late - a.late);
 
-  const collected = ((monthPayments.data ?? []) as { amount: number }[]).reduce((sum, p) => sum + p.amount, 0);
+  const collected = ((monthPayments.data ?? []) as unknown as { amount: number; student: { agency: string | null } | null }[])
+    .filter((p) => agency.keep(p.student?.agency))
+    .reduce((sum, p) => sum + p.amount, 0);
+  const spent = ((monthExpenses.data ?? []) as { amount: number; agency: string | null }[]).filter((e) => agency.keep(e.agency)).reduce((sum, e) => sum + e.amount, 0);
   const lateTotal = overdue.reduce((sum, b) => sum + b.late, 0);
-  const lessonsToday = (todayLessons.data ?? []) as LessonWithNames[];
-  const lessonsTomorrow = (tomorrowLessons.data ?? []) as LessonWithNames[];
-  const upcomingExams = (exams.data ?? []) as (Exam & { student: { id: string; full_name: string } | null })[];
+  type WithAgency = { student: { agency?: string | null } | null };
+  const lessonsToday = ((todayLessons.data ?? []) as (LessonWithNames & WithAgency)[]).filter((l) => agency.keep(l.student?.agency));
+  const lessonsTomorrow = ((tomorrowLessons.data ?? []) as (LessonWithNames & WithAgency)[]).filter((l) => agency.keep(l.student?.agency));
+  const upcomingExams = ((exams.data ?? []) as (Exam & { student: { id: string; full_name: string; agency?: string | null } | null })[])
+    .filter((e) => agency.keep(e.student?.agency))
+    .slice(0, 5);
   const firstName = (ctx.fullName || "").split(" ")[0];
   const now = Date.now();
   const doneToday = lessonsToday.filter((l) => l.status === "done").length;
@@ -109,9 +123,11 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           ) : (
             <span className="first-letter:uppercase">
               {longDay(today)} · {ctx.school.name}
+              {agency.selected ? ` · ${agency.selected}` : ""}
             </span>
           )
         }
+        actions={agency.enabled && isStaff ? <ParamSelect param="agence" label="Agence" options={agency.options} /> : undefined}
       />
 
       {isStaff && (
@@ -143,7 +159,22 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           <Stat label="Leçons aujourd'hui" value={lessonsToday.length} icon={<CalendarCheck className="h-4 w-4" />} hint={`${doneToday} faite${doneToday > 1 ? "s" : ""}`} delay={0.1} href="/app/planning" />
           <Stat label="Élèves en formation" value={inTraining} icon={<Users className="h-4 w-4" />} hint={`${studentList.length} inscrits`} delay={0.15} href="/app/eleves" />
         </div>
-      ) : (
+      ) : null}
+      {isOwner && (
+        <Link
+          href="/app/depenses"
+          className="mt-3 flex flex-wrap items-center justify-between gap-x-6 gap-y-1 rounded-2xl border border-line bg-surface px-5 py-3 text-sm transition hover:border-brand-400"
+        >
+          <span className="flex items-center gap-2 font-semibold">
+            <Scale className="h-4 w-4 text-muted" /> Résultat du mois
+          </span>
+          <span className="text-muted">
+            {money(collected)} encaissés − {money(spent)} de dépenses ={" "}
+            <b className={collected - spent >= 0 ? "text-brand-700 dark:text-brand-200" : "text-red-600"}>{money(collected - spent)}</b>
+          </span>
+        </Link>
+      )}
+      {!isStaff && (
         <div className="grid grid-cols-2 gap-3 lg:gap-4">
           <Stat label="Mes leçons aujourd'hui" value={lessonsToday.length} icon={<CalendarCheck className="h-4 w-4" />} tone="brand" hint={`${doneToday} faite${doneToday > 1 ? "s" : ""}`} href="/app/planning" />
           <Stat label="Mes leçons demain" value={lessonsTomorrow.length} icon={<CalendarClock className="h-4 w-4" />} delay={0.05} href={`/app/planning?jour=${tomorrow}`} />

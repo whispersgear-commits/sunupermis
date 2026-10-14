@@ -42,6 +42,7 @@ export interface Instructor {
   full_name: string;
   phone: string | null;
   active: boolean;
+  agency?: string | null;
 }
 
 export interface Vehicle {
@@ -50,6 +51,7 @@ export interface Vehicle {
   plate: string | null;
   category: string;
   active: boolean;
+  agency?: string | null;
 }
 
 export interface Lesson {
@@ -141,3 +143,28 @@ export const ROLE_LABEL: Record<Role, string> = {
   secretary: "Secrétaire",
   instructor: "Moniteur",
 };
+
+export interface Expense {
+  id: string;
+  spent_on: string;
+  category: "fuel" | "salary" | "maintenance" | "rent" | "insurance" | "exam_fees" | "equipment" | "other";
+  label: string | null;
+  amount: number;
+  agency: string | null;
+  vehicle_id: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+/** Catégories de dépenses, dans l'ordre d'affichage, avec leur couleur. */
+export const EXPENSE_CATEGORIES: { key: Expense["category"]; label: string; color: string }[] = [
+  { key: "fuel", label: "Carburant", color: "#f59e0b" },
+  { key: "salary", label: "Salaires", color: "#0b8a5a" },
+  { key: "maintenance", label: "Entretien et réparations", color: "#ef4444" },
+  { key: "rent", label: "Loyer", color: "#6366f1" },
+  { key: "insurance", label: "Assurance", color: "#0ea5e9" },
+  { key: "exam_fees", label: "Frais d'examen", color: "#a855f7" },
+  { key: "equipment", label: "Matériel et fournitures", color: "#14b8a6" },
+  { key: "other", label: "Autre", color: "#64748b" },
+];
+export const EXPENSE_LABEL = Object.fromEntries(EXPENSE_CATEGORIES.map((c) => [c.key, c.label])) as Record<Expense["category"], string>;

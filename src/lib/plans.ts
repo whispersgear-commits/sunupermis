@@ -56,7 +56,8 @@ export const PLAN_HIGHLIGHTS: Record<PlanId, string[]> = {
     "Planning des leçons et des examens",
     "Paiements, échéanciers, reçus avec QR code",
     "Relance WhatsApp en un clic",
-    "Caisse du jour",
+    "Caisse du jour, dépenses et résultat",
+    "Import des élèves depuis Excel",
   ],
   pro: [
     "Tout l'Essentiel",
@@ -68,7 +69,7 @@ export const PLAN_HIGHLIGHTS: Record<PlanId, string[]> = {
   multi: [
     "Tout le Pro",
     "Comptes illimités",
-    "Plusieurs agences : élèves, planning et paiements par agence",
+    "Plusieurs agences : élèves, moniteurs, voitures, planning, paiements et dépenses par agence",
     "Assistance prioritaire",
   ],
 };
@@ -81,6 +82,8 @@ export const PLAN_COMPARISON: { label: string; values: Record<PlanId, string | b
   { label: "Paiements, échéanciers, reçus QR", values: { essentiel: true, pro: true, multi: true } },
   { label: "Relance WhatsApp en un clic", values: { essentiel: true, pro: true, multi: true } },
   { label: "Caisse du jour", values: { essentiel: true, pro: true, multi: true } },
+  { label: "Dépenses et résultat du mois", values: { essentiel: true, pro: true, multi: true } },
+  { label: "Import des élèves depuis Excel", values: { essentiel: true, pro: true, multi: true } },
   { label: "Rappels automatiques chaque soir", values: { essentiel: false, pro: true, multi: true } },
   { label: "Caisse du jour par personne", values: { essentiel: false, pro: true, multi: true } },
   { label: "Export CSV (comptabilité)", values: { essentiel: false, pro: true, multi: true } },

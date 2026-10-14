@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, UserPlus } from "lucide-react";
+import { ChevronRight, FileSpreadsheet, UserPlus } from "lucide-react";
 import { Avatar, Badge, ButtonLink, Card, Empty, PageHeader, ProgressBar } from "@/components/app/ui";
 import { ParamSelect, SearchBox, Tabs } from "@/components/app/filters";
 import { createClient } from "@/lib/supabase/server";
@@ -90,9 +90,15 @@ export default async function ElevesPage({ searchParams }: { searchParams: Promi
         description={`${all.filter((s) => s.status === "active" || s.status === "code_ok").length} en formation · ${all.length} au total`}
         actions={
           isStaff ? (
-            <ButtonLink href="/app/eleves/nouveau">
-              <UserPlus className="h-4 w-4" /> Nouvel élève
-            </ButtonLink>
+            <>
+              <ButtonLink href="/app/eleves/importer" variant="secondary">
+                <FileSpreadsheet className="h-4 w-4" /> <span className="hidden sm:inline">Importer</span>
+                <span className="sr-only sm:hidden">Importer depuis Excel</span>
+              </ButtonLink>
+              <ButtonLink href="/app/eleves/nouveau">
+                <UserPlus className="h-4 w-4" /> Nouvel élève
+              </ButtonLink>
+            </>
           ) : undefined
         }
       />

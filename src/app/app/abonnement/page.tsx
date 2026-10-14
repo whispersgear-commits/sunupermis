@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { CheckCircle2, Clock, Loader2, Lock, XCircle } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, Clock, FileText, Loader2, Lock, XCircle } from "lucide-react";
+import { subscriptionInvoiceLabel } from "@/lib/subscription-invoice";
 import { Badge, Card, CardTitle, Empty, PageHeader } from "@/components/app/ui";
 import { PlanPicker } from "@/components/app/plan-picker";
 import { AutoRefresh } from "@/components/app/auto-refresh";
@@ -23,6 +25,7 @@ interface SubscriptionPayment {
   status: "pending" | "paid" | "failed";
   created_at: string;
   paid_at: string | null;
+  invoice_no: number | null;
 }
 
 const STATUS = {
@@ -57,7 +60,7 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
   if (isOwner) {
     const { data } = await supabase
       .from("subscription_payments")
-      .select("id, plan, months, amount, status, created_at, paid_at")
+      .select("id, plan, months, amount, status, created_at, paid_at, invoice_no")
       .eq("school_id", ctx.school.id)
       .order("created_at", { ascending: false })
       .limit(24);
@@ -191,6 +194,14 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
                     <div className="flex items-center gap-3">
                       <span className="font-bold">{money(p.amount)}</span>
                       <Badge tone={STATUS[p.status].tone}>{STATUS[p.status].label}</Badge>
+                      {p.status === "paid" && (
+                        <Link
+                          href={`/app/abonnement/facture/${p.id}`}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-xs font-semibold transition hover:border-brand-600 hover:text-brand-700"
+                        >
+                          <FileText className="h-3.5 w-3.5" /> Facture {subscriptionInvoiceLabel(p.invoice_no, p.paid_at)}
+                        </Link>
+                      )}
                     </div>
                   </li>
                 ))}

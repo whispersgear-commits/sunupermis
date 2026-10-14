@@ -315,6 +315,7 @@ export async function addInstructor(_s: FormState, fd: FormData): Promise<FormSt
     school_id: ctx.school.id,
     full_name: name,
     phone: normalizePhone(text(fd, "phone")),
+    agency: agencyOf(ctx.school, fd),
   });
   if (error) return { error: "Moniteur non enregistré." };
   revalidatePath("/app/equipe");
@@ -331,6 +332,7 @@ export async function addVehicle(_s: FormState, fd: FormData): Promise<FormState
     label,
     plate: text(fd, "plate") || null,
     category: text(fd, "category") || "B",
+    agency: agencyOf(ctx.school, fd),
   });
   if (error) return { error: "Voiture non enregistrée." };
   revalidatePath("/app/equipe");
@@ -455,7 +457,11 @@ export async function addAgency(_s: FormState, fd: FormData): Promise<FormState>
   const { error } = await supabase.from("schools").update({ agencies: [...list, name] }).eq("id", ctx.school.id);
   if (error) return { error: "Agence non enregistrée." };
   // Première agence : les élèves existants y sont rattachés.
-  if (list.length === 0) await supabase.from("students").update({ agency: name }).eq("school_id", ctx.school.id).is("agency", null);
+  if (list.length === 0) {
+    await Promise.all(
+      (["students", "instructors", "vehicles", "expenses"] as const).map((t) => supabase.from(t).update({ agency: name }).eq("school_id", ctx.school.id).is("agency", null)),
+    );
+  }
   revalidatePath("/app", "layout");
   return { success: `Agence « ${name} » ajoutée.` };
 }
@@ -467,7 +473,9 @@ export async function removeAgency(fd: FormData) {
   const supabase = await createClient();
   await supabase.from("schools").update({ agencies: (ctx.school.agencies ?? []).filter((a) => a !== name) }).eq("id", ctx.school.id);
   // Les élèves de l'agence retirée restent, sans agence.
-  await supabase.from("students").update({ agency: null }).eq("school_id", ctx.school.id).eq("agency", name);
+  await Promise.all(
+    (["students", "instructors", "vehicles", "expenses"] as const).map((t) => supabase.from(t).update({ agency: null }).eq("school_id", ctx.school.id).eq("agency", name)),
+  );
   revalidatePath("/app", "layout");
 }
 
@@ -487,4 +495,134 @@ export async function sendRemindersNow(_s: FormState, fd: FormData): Promise<For
   const failed = lessons.failed + payments.failed;
   if (failed && !sent) return { error: `${failed} message${failed > 1 ? "s" : ""} non envoyé${failed > 1 ? "s" : ""}. Vérifiez la configuration WhatsApp.` };
   return { success: `${sent} message${sent > 1 ? "s" : ""} envoyé${sent > 1 ? "s" : ""}${lessons.skipped ? ` · ${lessons.skipped} déjà envoyé${lessons.skipped > 1 ? "s" : ""}` : ""}${failed ? ` · ${failed} en échec` : ""}.` };
+}
+
+// ---------------------------------------------------------------------------
+// Import d'élèves (fichier Excel ou CSV, lu dans le navigateur)
+// ---------------------------------------------------------------------------
+
+export interface ImportRow {
+  full_name: string;
+  phone: string;
+  license?: string;
+  price?: number;
+  paid?: number;
+  hours?: number;
+  agency?: string;
+  notes?: string;
+}
+
+/**
+ * Enregistre les élèves d'un fichier. Tout est revérifié ici : le navigateur
+ * a déjà prévenu des erreurs, mais seul le serveur fait foi. Les numéros
+ * déjà inscrits sont ignorés (pas de doublon si on importe deux fois).
+ * Ce qui a déjà été payé devient un paiement « reprise », avec son reçu.
+ */
+export async function importStudents(rows: ImportRow[]): Promise<{ error?: string; created?: number; skipped?: number }> {
+  const ctx = await requireStaff();
+  if (!Array.isArray(rows) || rows.length === 0) return { error: "Aucun élève à importer." };
+  if (rows.length > 500) return { error: "500 élèves au plus par fichier." };
+  const supabase = await createClient();
+  const { data: existing } = await supabase.from("students").select("phone");
+  const seen = new Set((existing ?? []).map((s) => s.phone));
+  const agencies = can(ctx.school, "agencies") ? ctx.school.agencies ?? [] : [];
+
+  const clean: (ImportRow & { phone: string })[] = [];
+  let skipped = 0;
+  for (const r of rows) {
+    const name = String(r.full_name ?? "").trim().replace(/\s+/g, " ").slice(0, 120);
+    const phone = normalizePhone(String(r.phone ?? ""));
+    if (name.length < 2 || !phone || seen.has(phone)) {
+      skipped++;
+      continue;
+    }
+    seen.add(phone);
+    const price = Math.max(0, Math.round(Number(r.price) || 0));
+    const license = String(r.license ?? "B").trim().toUpperCase().slice(0, 1);
+    const agency = agencies.includes(String(r.agency ?? "").trim()) ? String(r.agency).trim() : agencies[0];
+    clean.push({
+      full_name: name,
+      phone,
+      license: ["A", "B", "C", "D", "E"].includes(license) ? license : "B",
+      price,
+      paid: Math.min(price, Math.max(0, Math.round(Number(r.paid) || 0))),
+      hours: Math.min(200, Math.max(0, Math.round(Number(r.hours) || 20))),
+      agency,
+      notes: r.notes ? String(r.notes).slice(0, 500) : undefined,
+    });
+  }
+  if (clean.length === 0) return { error: "Aucun élève valable : noms ou numéros manquants, ou déjà inscrits.", skipped };
+
+  const { data: created, error } = await supabase
+    .from("students")
+    .insert(
+      clean.map((r) => ({
+        school_id: ctx.school.id,
+        full_name: r.full_name,
+        phone: r.phone,
+        license: r.license,
+        package_price: r.price,
+        hours_planned: r.hours,
+        notes: r.notes ?? null,
+        agency: r.agency ?? null,
+      })),
+    )
+    .select("id, phone");
+  if (error || !created) return { error: "Import impossible. Vérifiez le fichier et réessayez." };
+
+  // Ce qui a déjà été payé avant SunuPermis : un paiement « reprise » par élève.
+  const idOf = new Map(created.map((s) => [s.phone, s.id]));
+  const payments = clean
+    .filter((r) => (r.paid ?? 0) > 0 && idOf.has(r.phone))
+    .map((r) => ({ school_id: ctx.school.id, student_id: idOf.get(r.phone)!, amount: r.paid!, method: "other", reference: "Reprise à l'import" }));
+  if (payments.length) await supabase.from("payments").insert(payments);
+
+  revalidatePath("/app", "layout");
+  return { created: created.length, skipped };
+}
+
+// ---------------------------------------------------------------------------
+// Dépenses
+// ---------------------------------------------------------------------------
+
+const EXPENSE_KEYS = ["fuel", "salary", "maintenance", "rent", "insurance", "exam_fees", "equipment", "other"];
+
+export async function addExpense(_s: FormState, fd: FormData): Promise<FormState> {
+  const ctx = await requireStaff();
+  const amount = parseAmount(fd.get("amount"));
+  const category = text(fd, "category");
+  const date = text(fd, "spent_on") || formatISO(new Date(), { representation: "date" });
+  if (amount <= 0) return { error: "Montant invalide." };
+  if (!EXPENSE_KEYS.includes(category)) return { error: "Choisissez une catégorie." };
+  if (date > formatISO(new Date(), { representation: "date" })) return { error: "La date ne peut pas être dans le futur." };
+  const supabase = await createClient();
+  const { error } = await supabase.from("expenses").insert({
+    school_id: ctx.school.id,
+    spent_on: date,
+    category,
+    amount,
+    label: text(fd, "label").slice(0, 120) || null,
+    vehicle_id: text(fd, "vehicle_id") || null,
+    agency: agencyOf(ctx.school, fd),
+  });
+  if (error) return { error: "Dépense non enregistrée." };
+  revalidatePath("/app", "layout");
+  return { success: `Dépense enregistrée · ${groupDigits(amount)} FCFA.` };
+}
+
+/** Suppression d'une dépense saisie par erreur : propriétaire seulement. */
+export async function deleteExpense(fd: FormData) {
+  const ctx = await requireOwner();
+  const supabase = await createClient();
+  await supabase.from("expenses").delete().eq("id", text(fd, "expense_id")).eq("school_id", ctx.school.id);
+  revalidatePath("/app", "layout");
+}
+
+/** Change l'agence d'un moniteur ou d'une voiture (formule Multi-agences). */
+export async function setResourceAgency(fd: FormData) {
+  const ctx = await requireStaff();
+  const table = text(fd, "table") === "vehicles" ? "vehicles" : "instructors";
+  const supabase = await createClient();
+  await supabase.from(table).update({ agency: agencyOf(ctx.school, fd) }).eq("id", text(fd, "id")).eq("school_id", ctx.school.id);
+  revalidatePath("/app", "layout");
 }

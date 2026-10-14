@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { PendingButton } from "@/components/ui/pending-button";
 import { Car, Plus, UserPlus } from "lucide-react";
 import { Avatar, Badge, Card, Empty, PageHeader } from "@/components/app/ui";
-import { InstructorForm, VehicleForm } from "@/components/app/team-forms";
+import { AgencyPicker, InstructorForm, VehicleForm } from "@/components/app/team-forms";
+import { ParamSelect } from "@/components/app/filters";
+import { agencyFilter } from "@/lib/agencies";
 import { InviteForm, InviteLinkActions } from "@/components/app/invite-panel";
 import { Tabs } from "@/components/app/filters";
 import { Sheet } from "@/components/ui/sheet";
@@ -30,7 +32,7 @@ function ToggleButton({ table, id, active }: { table: "instructors" | "vehicles"
   );
 }
 
-export default async function EquipePage({ searchParams }: { searchParams: Promise<{ onglet?: string; inviter?: string }> }) {
+export default async function EquipePage({ searchParams }: { searchParams: Promise<{ onglet?: string; inviter?: string; agence?: string }> }) {
   const params = await searchParams;
   const ctx = await requireStaff();
   const isOwner = ctx.role === "owner";
@@ -47,15 +49,17 @@ export default async function EquipePage({ searchParams }: { searchParams: Promi
   const limit = userLimit(ctx.school);
   const memberList = (members ?? []) as Member[];
   const pending = (invitations ?? []) as Invitation[];
-  const instructorList = (instructors ?? []) as Instructor[];
-  const vehicleList = (vehicles ?? []) as Vehicle[];
+  const agency = agencyFilter(ctx.school, params.agence);
+  const agencyNames = agency.options.slice(1).map((o) => o.value);
+  const instructorList = ((instructors ?? []) as Instructor[]).filter((i) => agency.keep(i.agency));
+  const vehicleList = ((vehicles ?? []) as Vehicle[]).filter((v) => agency.keep(v.agency));
   const activeInstructors = instructorList.filter((i) => i.active);
 
   const tab = params.onglet === "moniteurs" || params.onglet === "voitures" ? params.onglet : "comptes";
   const tabs = [
     { href: "/app/equipe", label: "Comptes", count: memberList.length, active: tab === "comptes" },
-    { href: "/app/equipe?onglet=moniteurs", label: "Moniteurs", count: activeInstructors.length, active: tab === "moniteurs" },
-    { href: "/app/equipe?onglet=voitures", label: "Voitures", count: vehicleList.filter((v) => v.active).length, active: tab === "voitures" },
+    { href: `/app/equipe?onglet=moniteurs${agency.selected ? `&agence=${encodeURIComponent(agency.selected)}` : ""}`, label: "Moniteurs", count: activeInstructors.length, active: tab === "moniteurs" },
+    { href: `/app/equipe?onglet=voitures${agency.selected ? `&agence=${encodeURIComponent(agency.selected)}` : ""}`, label: "Voitures", count: vehicleList.filter((v) => v.active).length, active: tab === "voitures" },
   ];
 
   const action =
@@ -85,7 +89,7 @@ export default async function EquipePage({ searchParams }: { searchParams: Promi
           </>
         }
       >
-        <InstructorForm />
+        <InstructorForm agencies={agencyNames} />
       </Sheet>
     ) : (
       <Sheet
@@ -97,7 +101,7 @@ export default async function EquipePage({ searchParams }: { searchParams: Promi
           </>
         }
       >
-        <VehicleForm />
+        <VehicleForm agencies={agencyNames} />
       </Sheet>
     );
 
@@ -105,6 +109,11 @@ export default async function EquipePage({ searchParams }: { searchParams: Promi
     <>
       <PageHeader title="Équipe et voitures" description="Comptes de connexion, moniteurs et véhicules de l'auto-école." actions={action || undefined} />
       <Tabs id="equipe-onglet" variant="underline" className="mb-5" items={tabs} />
+      {agency.enabled && tab !== "comptes" && (
+        <div className="mb-4">
+          <ParamSelect param="agence" label="Agence" options={agency.options} className="w-full sm:w-auto" />
+        </div>
+      )}
 
       {tab === "comptes" && (
         <div className="space-y-5">
@@ -195,6 +204,7 @@ export default async function EquipePage({ searchParams }: { searchParams: Promi
                       <p className="truncate text-xs text-muted">{i.phone ? displayPhone(i.phone) : "Sans téléphone"}</p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
+                      {agency.enabled && <AgencyPicker table="instructors" id={i.id} current={i.agency} agencies={agencyNames} />}
                       {hasAccount ? <Badge tone="good">A son compte</Badge> : !i.active ? <Badge>Inactif</Badge> : null}
                       <ToggleButton table="instructors" id={i.id} active={i.active} />
                     </div>
@@ -225,6 +235,7 @@ export default async function EquipePage({ searchParams }: { searchParams: Promi
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
+                    {agency.enabled && <AgencyPicker table="vehicles" id={v.id} current={v.agency} agencies={agencyNames} />}
                     {!v.active && <Badge>Inactive</Badge>}
                     <ToggleButton table="vehicles" id={v.id} active={v.active} />
                   </div>

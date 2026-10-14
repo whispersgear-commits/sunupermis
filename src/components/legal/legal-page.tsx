@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CookieSettingsLink } from "./cookie-consent";
 import { ArrowLeft } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { LEGAL, LEGAL_PAGES } from "@/lib/legal";
@@ -126,6 +127,7 @@ export function LegalLinks({ className }: { className?: string }) {
           {p.label}
         </Link>
       ))}
+      <CookieSettingsLink />
     </nav>
   );
 }

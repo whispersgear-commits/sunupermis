@@ -147,8 +147,14 @@ export default function ConfidentialitePage() {
 
       <Section id="cookies" n={9} title="Cookies">
         <p>
-          {LEGAL.product} n'utilise que des <b>cookies strictement nécessaires</b> : ceux qui maintiennent votre connexion. Aucun cookie publicitaire, aucun outil
-          de mesure d'audience, aucun traceur de réseau social. Ces cookies ne demandent donc pas de consentement ; les supprimer vous déconnecte.
+          {LEGAL.product} utilise aujourd'hui uniquement des <b>cookies strictement nécessaires</b> : ceux qui maintiennent votre connexion et sécurisent votre
+          session, et le cookie <code>sp_consent</code> qui mémorise vos choix pendant 6 mois. Ils ne demandent pas de consentement ; les supprimer vous
+          déconnecte.
+        </p>
+        <p>
+          À votre première visite, un bandeau vous permet d'<b>accepter</b>, de <b>refuser</b> ou de <b>personnaliser</b> la mesure d'audience. Aucun outil
+          de mesure d'audience n'est actif à ce jour ; si nous en ajoutons un, il ne se chargera qu'avec votre accord. Aucun cookie publicitaire, aucun traceur
+          de réseau social. Vous pouvez changer d'avis à tout moment avec le lien « Gérer les cookies » en bas de chaque page.
         </p>
       </Section>
 

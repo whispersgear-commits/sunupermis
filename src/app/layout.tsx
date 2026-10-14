@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { CookieConsent } from "@/components/legal/cookie-consent";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen font-sans">
         {children}
         <Toaster position="top-center" richColors closeButton />
+        <CookieConsent />
       </body>
     </html>
   );

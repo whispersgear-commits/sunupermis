@@ -6,7 +6,7 @@ import { AlertTriangle, ArrowLeft, CalendarPlus, ChevronRight, FileText, Graduat
 import { receiptLabel } from "@/lib/receipts";
 import { Avatar, Badge, Card, CardTitle, Empty, ProgressBar } from "@/components/app/ui";
 import { LessonRow, type LessonWithNames } from "@/components/app/lesson-row";
-import { ExamForm, PaymentForm, ProgressRing } from "@/components/app/student-panels";
+import { ExamForm, PaymentForm, ProgressRing , SupplementForm } from "@/components/app/student-panels";
 import { Tabs } from "@/components/app/filters";
 import { createClient } from "@/lib/supabase/server";
 import { requireContext } from "@/lib/session";
@@ -59,7 +59,7 @@ export default async function ElevePage({ params, searchParams }: { params: Prom
   const schedule = ((installments ?? []) as Installment[]).map((i) => {
     const covered = Math.min(i.amount, Math.max(0, remaining));
     remaining -= covered;
-    const state = covered >= i.amount ? "paid" : i.due_date < today ? "late" : covered > 0 ? "partial" : "upcoming";
+    const state = covered >= i.amount ? "paid" : i.due_date < today ? "late" : covered > 0 ? "partial" : i.due_date === today ? "today" : "upcoming";
     return { ...i, covered, state };
   });
   const late = schedule.filter((i) => i.state === "late").reduce((sum, i) => sum + i.amount - i.covered, 0);
@@ -249,7 +249,13 @@ export default async function ElevePage({ params, searchParams }: { params: Prom
             <Card>
               <CardTitle title="Encaisser un paiement" />
               <div className="p-5">
-                <PaymentForm studentId={s.id} suggested={late > 0 ? late : Math.min(rest, nextDue ? nextDue.amount - nextDue.covered : rest)} />
+                {rest > 0 ? (
+                  <PaymentForm studentId={s.id} suggested={late > 0 ? late : Math.min(rest, nextDue ? nextDue.amount - nextDue.covered : rest)} />
+                ) : (
+                  <p className="rounded-2xl bg-brand-50 p-4 text-sm font-semibold text-brand-800 dark:bg-brand-900/40 dark:text-brand-100">
+                    Forfait soldé : rien à encaisser. Pour un frais en plus, ajoutez un supplément ci-dessous.
+                  </p>
+                )}
               </div>
             </Card>
             <Card delay={0.05}>
@@ -264,11 +270,14 @@ export default async function ElevePage({ params, searchParams }: { params: Prom
                         </span>
                         <span>
                           <span className="block font-semibold">{dayMonth(i.due_date)}</span>
-                          <span className="text-xs text-muted">{money(i.amount)}</span>
+                          <span className="text-xs text-muted">
+                            {money(i.amount)}
+                            {i.label && ` · ${i.label}`}
+                          </span>
                         </span>
                       </span>
-                      <Badge tone={i.state === "paid" ? "good" : i.state === "late" ? "bad" : i.state === "partial" ? "warn" : "neutral"}>
-                        {i.state === "paid" ? "Payée" : i.state === "late" ? "En retard" : i.state === "partial" ? `Entamée · ${money(i.covered)}` : "À venir"}
+                      <Badge tone={i.state === "paid" ? "good" : i.state === "late" ? "bad" : i.state === "partial" || i.state === "today" ? "warn" : "neutral"}>
+                        {i.state === "paid" ? "Payée" : i.state === "late" ? "En retard" : i.state === "partial" ? `Entamée · ${money(i.covered)}` : i.state === "today" ? "Aujourd'hui" : "À venir"}
                       </Badge>
                     </li>
                   ))}
@@ -276,6 +285,12 @@ export default async function ElevePage({ params, searchParams }: { params: Prom
               ) : (
                 <p className="px-5 py-6 text-sm text-muted">Pas d'échéancier : forfait payé en une fois ou gratuit.</p>
               )}
+            </Card>
+            <Card delay={0.08}>
+              <CardTitle title="Ajouter un supplément" />
+              <div className="p-5">
+                <SupplementForm studentId={s.id} />
+              </div>
             </Card>
           </div>
           <Card delay={0.1} className="h-fit">

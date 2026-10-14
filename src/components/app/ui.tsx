@@ -150,7 +150,7 @@ export function Badge({ children, tone = "neutral" }: { children: React.ReactNod
     bad: "bg-red-50 text-red-700 dark:bg-red-900/40 dark:text-red-200",
     info: "bg-sky-50 text-sky-700 dark:bg-sky-900/40 dark:text-sky-200",
   };
-  return <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold", tones[tone])}>{children}</span>;
+  return <span className={cn("inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold", tones[tone])}>{children}</span>;
 }
 
 export function Empty({ title, children }: { title: string; children?: React.ReactNode }) {

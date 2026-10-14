@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { ActionForm, Submit } from "@/components/ui/form";
 import { Field, Input, Select } from "@/components/ui/fields";
 import { cn } from "@/lib/utils";
-import { addExam, addPayment } from "@/app/app/actions";
+import { addExam, addPayment, addSupplement } from "@/app/app/actions";
 import { groupDigits, todayIso } from "@/lib/format";
 
 /** Anneau de progression des leçons, qui se remplit à l'ouverture. */
@@ -136,6 +136,58 @@ export function ExamForm({ studentId }: { studentId: string }) {
       <Input name="exam_date" type="date" defaultValue={todayIso()} required aria-label="Date" />
       <Submit variant="secondary" className="col-span-2 sm:col-span-1">
         Ajouter
+      </Submit>
+    </ActionForm>
+  );
+}
+
+/** Supplément au forfait : heures en plus, nouvelle présentation à l'examen… */
+const SUPPLEMENT_IDEAS = ["Heures de conduite supplémentaires", "Nouvelle présentation au code", "Nouvelle présentation à la conduite", "Frais de dossier"];
+
+export function SupplementForm({ studentId }: { studentId: string }) {
+  const [amount, setAmount] = useState("");
+  const [label, setLabel] = useState("");
+  return (
+    <ActionForm
+      action={addSupplement}
+      resetOnSuccess
+      onSuccess={() => {
+        setAmount("");
+        setLabel("");
+      }}
+      className="space-y-4"
+    >
+      <input type="hidden" name="student_id" value={studentId} />
+      <Field label="Motif">
+        <Input name="label" required minLength={2} maxLength={80} value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Ex. 5 heures de conduite en plus" />
+      </Field>
+      <div className="flex flex-wrap gap-2">
+        {SUPPLEMENT_IDEAS.map((idea) => (
+          <button
+            key={idea}
+            type="button"
+            onClick={() => setLabel(idea)}
+            className={cn("rounded-full border px-3 py-1 text-xs font-semibold transition", label === idea ? "border-brand-600 bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200" : "border-line text-muted hover:border-brand-400")}
+          >
+            {idea}
+          </button>
+        ))}
+      </div>
+      <Field label="Montant (FCFA)" hint="S'ajoute au forfait, avec une échéance due aujourd'hui.">
+        <Input
+          name="amount"
+          inputMode="numeric"
+          required
+          value={amount}
+          onChange={(e) => {
+            const digits = e.target.value.replace(/\D/g, "");
+            setAmount(digits ? groupDigits(Number(digits)) : "");
+          }}
+          placeholder="0"
+        />
+      </Field>
+      <Submit variant="secondary" className="w-full">
+        Ajouter le supplément{amount ? ` · ${amount} FCFA` : ""}
       </Submit>
     </ActionForm>
   );

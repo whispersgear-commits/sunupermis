@@ -42,6 +42,10 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
     return { ...i, due: i.amount - covered };
   });
 
+  // Suppléments ajoutés après l'inscription : une ligne chacun.
+  const supplements = ((installments ?? []) as Installment[]).filter((i) => i.label);
+  const base = s.package_price - supplements.reduce((sum, i) => sum + i.amount, 0);
+
   return (
     <>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 print:hidden">
@@ -80,21 +84,30 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
                   <p className="font-semibold">Formation au permis de conduire, catégorie {s.license} ({LICENSE[s.license as keyof typeof LICENSE] ?? ""})</p>
                   <p className="text-muted">Forfait : code de la route et {s.hours_planned} leçons de conduite</p>
                 </td>
-                <td className="py-3 text-right font-semibold tabular-nums">{money(s.package_price)}</td>
+                <td className="py-3 text-right font-semibold tabular-nums whitespace-nowrap">{money(base)}</td>
               </tr>
+              {supplements.map((i) => (
+                <tr key={i.id} className="border-b border-line">
+                  <td className="py-3 pr-4">
+                    <p className="font-semibold">Supplément : {i.label}</p>
+                    <p className="text-muted">Ajouté le {dayMonth(i.due_date)}</p>
+                  </td>
+                  <td className="py-3 text-right font-semibold tabular-nums whitespace-nowrap">{money(i.amount)}</td>
+                </tr>
+              ))}
             </tbody>
             <tfoot>
               <tr>
                 <td className="pt-4 pr-4 text-right font-bold">Total</td>
-                <td className="pt-4 text-right text-lg font-extrabold tabular-nums">{money(s.package_price)}</td>
+                <td className="pt-4 text-right text-lg font-extrabold tabular-nums whitespace-nowrap">{money(s.package_price)}</td>
               </tr>
               <tr>
                 <td className="pt-1 pr-4 text-right text-muted">Déjà payé</td>
-                <td className="pt-1 text-right font-semibold text-brand-700 tabular-nums">− {money(paid)}</td>
+                <td className="pt-1 text-right font-semibold text-brand-700 tabular-nums whitespace-nowrap">− {money(paid)}</td>
               </tr>
               <tr>
                 <td className="pt-1 pr-4 text-right font-bold">Reste à payer</td>
-                <td className="pt-1 text-right text-lg font-extrabold tabular-nums">{money(rest)}</td>
+                <td className="pt-1 text-right text-lg font-extrabold tabular-nums whitespace-nowrap">{money(rest)}</td>
               </tr>
             </tfoot>
           </table>
@@ -113,7 +126,7 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
                   <span>
                     <span className="font-mono">{receiptLabel(p.receipt_no, p.paid_at)}</span> · {dayMonth(p.paid_at.slice(0, 10))} {p.paid_at.slice(0, 4)} · {METHOD_LABEL[p.method]}
                   </span>
-                  <span className="font-semibold tabular-nums">{money(p.amount)}</span>
+                  <span className="font-semibold tabular-nums whitespace-nowrap">{money(p.amount)}</span>
                 </li>
               ))}
             </ul>
@@ -132,7 +145,7 @@ export default async function FacturePage({ params }: { params: Promise<{ id: st
                       {dayMonth(i.due_date)} {i.due_date.slice(0, 4)}
                       {i.due_date < today && <b className="ml-2 text-red-600">en retard</b>}
                     </span>
-                    <span className="font-semibold tabular-nums">{money(i.due)}</span>
+                    <span className="font-semibold tabular-nums whitespace-nowrap">{money(i.due)}</span>
                   </li>
                 ))}
             </ul>

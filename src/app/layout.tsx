@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { CookieConsent } from "@/components/legal/cookie-consent";
+import { LEGAL } from "@/lib/legal";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -11,6 +12,16 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(LEGAL.site),
+  applicationName: "SunuPermis",
+  openGraph: {
+    type: "website",
+    locale: "fr_SN",
+    siteName: "SunuPermis",
+    title: "SunuPermis — le logiciel des auto-écoles",
+    description: "Élèves, planning des leçons, paiements en plusieurs fois, reçus et rappels WhatsApp : gérez votre auto-école depuis votre téléphone.",
+  },
+  twitter: { card: "summary_large_image" },
   title: {
     default: "SunuPermis — le logiciel des auto-écoles",
     template: "%s · SunuPermis",

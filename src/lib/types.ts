@@ -82,6 +82,8 @@ export interface Installment {
   student_id: string;
   due_date: string;
   amount: number;
+  /** Supplément ajouté au forfait (« Heures supplémentaires »…). */
+  label?: string | null;
 }
 
 export interface Exam {

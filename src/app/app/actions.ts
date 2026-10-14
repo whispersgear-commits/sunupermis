@@ -9,7 +9,7 @@ import { FEATURE_INFO, PLANS, can, userLimit, type Feature } from "@/lib/plans";
 import { whatsappConfigured } from "@/lib/whatsapp-api";
 import { sendLessonReminders, sendPaymentReminders } from "@/lib/reminders";
 import { normalizePhone } from "@/lib/phone";
-import { parseAmount } from "@/lib/format";
+import { groupDigits, parseAmount } from "@/lib/format";
 import type { FormState } from "@/components/ui/form";
 
 /**
@@ -45,6 +45,7 @@ export async function createStudent(_s: FormState, fd: FormData): Promise<FormSt
 
   if (fullName.length < 2) return { error: "Indiquez le nom de l'élève." };
   if (!phone) return { error: "Numéro WhatsApp invalide." };
+  if (parseAmount(fd.get("initial_payment")) > price) return { error: "Le premier versement dépasse le prix du forfait." };
 
   const supabase = await createClient();
   const { data: student, error } = await supabase
@@ -121,6 +122,43 @@ export async function updateStudent(_s: FormState, fd: FormData): Promise<FormSt
   redirect(`/app/eleves/${id}`);
 }
 
+/**
+ * Supplément au forfait (heures en plus, nouvelle présentation à l'examen…) :
+ * le forfait augmente et une échéance du même montant est créée, due
+ * aujourd'hui, avec son libellé.
+ */
+export async function addSupplement(_s: FormState, fd: FormData): Promise<FormState> {
+  const ctx = await requireStaff();
+  const id = text(fd, "student_id");
+  const amount = parseAmount(fd.get("amount"));
+  const label = text(fd, "label").slice(0, 80);
+  if (amount <= 0) return { error: "Montant invalide." };
+  if (label.length < 2) return { error: "Indiquez le motif du supplément." };
+  const supabase = await createClient();
+  const { data: student } = await supabase.from("students").select("package_price").eq("id", id).eq("school_id", ctx.school.id).maybeSingle();
+  if (!student) return { error: "Élève introuvable." };
+  const { error } = await supabase
+    .from("students")
+    .update({ package_price: student.package_price + amount })
+    .eq("id", id)
+    .eq("school_id", ctx.school.id);
+  if (error) return { error: "Supplément non enregistré." };
+  const { error: dueError } = await supabase.from("installments").insert({
+    school_id: ctx.school.id,
+    student_id: id,
+    due_date: formatISO(new Date(), { representation: "date" }),
+    amount,
+    label,
+  });
+  if (dueError) {
+    // On remet le forfait comme avant : pas de forfait sans échéance.
+    await supabase.from("students").update({ package_price: student.package_price }).eq("id", id).eq("school_id", ctx.school.id);
+    return { error: "Supplément non enregistré." };
+  }
+  revalidatePath("/app", "layout");
+  return { success: `Supplément ajouté : ${label} · ${groupDigits(amount)} FCFA.` };
+}
+
 export async function updateStudentStatus(fd: FormData) {
   const ctx = await requireStaff();
   const supabase = await createClient();
@@ -144,6 +182,14 @@ export async function addPayment(_s: FormState, fd: FormData): Promise<FormState
   if (!["cash", "wave", "orange_money", "other"].includes(method)) return { error: "Moyen de paiement invalide." };
 
   const supabase = await createClient();
+  // Pas plus que le reste à payer : une erreur de frappe (un zéro de trop)
+  // fausserait la caisse. Un supplément s'ajoute d'abord au forfait.
+  const { data: balance } = await supabase.from("student_balances").select("balance").eq("student_id", text(fd, "student_id")).maybeSingle();
+  if (!balance) return { error: "Choisissez un élève." };
+  if (balance.balance <= 0) return { error: "Cet élève a déjà tout réglé. Pour un nouveau frais, ajoutez d'abord un supplément sur sa fiche." };
+  if (amount > balance.balance) {
+    return { error: `Le montant dépasse le reste à payer (${groupDigits(balance.balance)} FCFA). Pour un frais en plus, ajoutez d'abord un supplément sur la fiche de l'élève.` };
+  }
   // Numéro de reçu, date et encaisseur sont fixés par la base.
   const { data, error } = await supabase
     .from("payments")
@@ -232,6 +278,7 @@ export async function createLesson(_s: FormState, fd: FormData): Promise<FormSta
   if (error) {
     if (error.message.includes("instructor_overlap")) return { error: "Ce moniteur a déjà une leçon sur ce créneau." };
     if (error.message.includes("vehicle_overlap")) return { error: "Cette voiture est déjà réservée sur ce créneau." };
+    if (error.message.includes("student_overlap")) return { error: "Cet élève a déjà une leçon sur ce créneau." };
     return { error: "Leçon non enregistrée." };
   }
   revalidatePath("/app", "layout");

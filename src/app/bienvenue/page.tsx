@@ -50,7 +50,7 @@ export default async function BienvenuePage() {
         </div>
         <input type="hidden" name="plan" value={meta.plan ?? ""} />
         <input type="hidden" name="months" value={String(meta.plan_months ?? "")} />
-        <Submit className="w-full">Continuer vers le paiement</Submit>
+        <Submit className="w-full">Ouvrir mon espace · 3 jours gratuits</Submit>
       </ActionForm>
     </AuthShell>
   );

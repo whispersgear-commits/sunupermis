@@ -11,12 +11,6 @@ import { PLANS } from "@/lib/plans";
 const text = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 const TOKEN = /^[0-9a-f]{36}$/;
 
-/** Après la création de l'école : paiement du premier abonnement. */
-function checkoutPath(plan: unknown, months: unknown): string {
-  const id = typeof plan === "string" && plan in PLANS ? plan : null;
-  if (!id) return "/app/abonnement?bienvenue=1";
-  return `/app/abonnement/payer?plan=${id}&mois=${String(months) === "12" ? 12 : 1}`;
-}
 
 /** Une destination de retour n'est suivie que si elle reste dans le site. */
 function safePath(path: string, fallback = "/app"): string {
@@ -98,7 +92,8 @@ export async function signUp(_s: FormState, fd: FormData): Promise<FormState> {
 
   const { error: rpcError } = await supabase.rpc("create_school", { school_name: school, school_city: city, school_phone: phone });
   if (rpcError) return { error: "Le compte est créé, mais pas l'école. Connectez-vous pour terminer." };
-  redirect(checkoutPath(plan, months));
+  // Essai gratuit de 3 jours : l'espace s'ouvre tout de suite.
+  redirect("/app?bienvenue=1");
 }
 
 export async function createSchool(_s: FormState, fd: FormData): Promise<FormState> {
@@ -111,7 +106,7 @@ export async function createSchool(_s: FormState, fd: FormData): Promise<FormSta
     school_phone: normalizePhone(text(fd, "phone")) ?? "",
   });
   if (error) return { error: "Création impossible. Réessayez." };
-  redirect(checkoutPath(text(fd, "plan"), text(fd, "months")));
+  redirect("/app?bienvenue=1");
 }
 
 /** Un compte déjà connecté accepte une invitation. */

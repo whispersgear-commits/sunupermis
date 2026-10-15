@@ -18,8 +18,8 @@ export const LEGAL = {
   cdpDeclaration: null as string | null,
   site: "https://sunupermis.com",
   /** Date de la version en vigueur. À changer à chaque modification. */
-  updated: "14 octobre 2026",
-  version: "2026-10-14",
+  updated: "15 octobre 2026",
+  version: "2026-10-15",
 };
 
 export const LEGAL_PAGES = [

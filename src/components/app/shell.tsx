@@ -97,7 +97,7 @@ export function Shell({
 
   const trialCard = showTrial && (
     <Link href="/app/abonnement" className="block rounded-2xl bg-asphalt p-4 text-white transition hover:brightness-110">
-      <p className="text-xs font-semibold text-brand-200">{trial ? "Accès offert" : "Abonnement"}</p>
+      <p className="text-xs font-semibold text-brand-200">{trial ? "Essai gratuit" : "Abonnement"}</p>
       <p className="mt-1 text-2xl font-extrabold">
         {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}
       </p>
@@ -105,7 +105,7 @@ export function Shell({
         <motion.div
           className="h-full rounded-full bg-lane"
           initial={{ width: 0 }}
-          animate={{ width: `${Math.min(100, (daysLeft / 30) * 100)}%` }}
+          animate={{ width: `${Math.min(100, (daysLeft / (trial ? 3 : 30)) * 100)}%` }}
           transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
         />
       </div>

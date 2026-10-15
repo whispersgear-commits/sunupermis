@@ -27,7 +27,7 @@ import { addDaysIso, dayShort, longDay, money, todayIso, weekday } from "@/lib/f
 import { displayPhone } from "@/lib/phone";
 import { lessonReminder, paymentReminder, waLink } from "@/lib/whatsapp";
 import { whatsappConfigured } from "@/lib/whatsapp-api";
-import { can } from "@/lib/plans";
+import { accessOf, can } from "@/lib/plans";
 import { agencyFilter } from "@/lib/agencies";
 import { ParamSelect } from "@/components/app/filters";
 import { cn } from "@/lib/utils";
@@ -48,6 +48,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   // Multi-agences : tout le tableau de bord peut se restreindre à une agence.
   const agency = agencyFilter(ctx.school, agence);
   const isOwner = ctx.role === "owner";
+  const access = accessOf(ctx.school);
   const supabase = await createClient();
 
   const today = todayIso();
@@ -129,6 +130,21 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         }
         actions={agency.enabled && isStaff ? <ParamSelect param="agence" label="Agence" options={agency.options} /> : undefined}
       />
+
+      {isOwner && access.trial && (
+        <Link
+          href="/app/abonnement"
+          className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-asphalt px-5 py-4 text-white transition hover:brightness-110"
+        >
+          <span>
+            <span className="block text-xs font-bold uppercase tracking-wider text-lane">Essai gratuit</span>
+            <span className="block font-bold">
+              {access.daysLeft <= 1 ? "Dernier jour" : `Encore ${access.daysLeft} jours`} avec toutes les fonctions
+            </span>
+          </span>
+          <span className="inline-flex h-10 items-center rounded-xl bg-brand-500 px-4 text-sm font-semibold">Choisir ma formule</span>
+        </Link>
+      )}
 
       {isStaff && (
         <div className="mb-5 grid grid-cols-4 gap-2 sm:gap-3">

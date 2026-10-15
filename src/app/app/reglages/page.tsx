@@ -124,12 +124,12 @@ export default async function ReglagesPage() {
         <Card delay={0.1} className="h-fit">
           <CardTitle title="Abonnement" />
           <div className="space-y-3 p-5 text-sm">
-            <p className="font-semibold">{access.trial ? "Accès offert · toutes les fonctions" : `Formule ${PLANS[ctx.school.plan].name}`}</p>
+            <p className="font-semibold">{access.trial ? "Essai gratuit · toutes les fonctions" : `Formule ${PLANS[ctx.school.plan].name}`}</p>
             <p className="text-muted">
               {!access.active
                 ? "Abonnement expiré."
                 : access.trial
-                  ? `Accès offert jusqu'au ${shortDate(access.until)}.`
+                  ? `Essai gratuit jusqu'au ${shortDate(access.until)}.`
                   : `Payé jusqu'au ${shortDate(access.until)}.`}
             </p>
             {!access.trial && isOwner && (

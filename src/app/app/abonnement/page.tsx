@@ -88,9 +88,20 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
   return (
     <>
       <PageHeader
-        title={neverPaid && !access.active ? "Activez votre abonnement" : "Abonnement"}
-        description={neverPaid && !access.active ? "Dernière étape : réglez votre formule pour ouvrir votre espace." : `${PLANS[ctx.school.plan].name} · ${ctx.school.name}`}
+        title={neverPaid && !access.active ? "Votre essai gratuit est terminé" : "Abonnement"}
+        description={
+          neverPaid && !access.active
+            ? "Choisissez votre formule pour continuer. Vos élèves, leçons et paiements sont conservés."
+            : `${PLANS[ctx.school.plan].name} · ${ctx.school.name}`
+        }
       />
+
+      {access.active && access.trial && (
+        <Notice tone="good" icon={<Clock className="h-5 w-5" />}>
+          Essai gratuit : {access.daysLeft <= 1 ? "dernier jour" : `encore ${access.daysLeft} jours`}, jusqu'au {shortDate(access.until)}. Toutes les fonctions sont
+          ouvertes. {isOwner ? "Choisissez votre formule maintenant pour continuer sans interruption : le temps payé commence après l'essai." : ""}
+        </Notice>
+      )}
 
       {params.paiement === "ok" && settled === "paid" && (
         <Notice tone="good" icon={<CheckCircle2 className="h-5 w-5" />}>
@@ -138,7 +149,7 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
       )}
       {!access.active && neverPaid && !isOwner && (
         <Notice tone="bad" icon={<Clock className="h-5 w-5" />}>
-          L'abonnement de l'auto-école n'est pas encore activé. Le propriétaire doit le régler pour ouvrir l'accès.
+          L'essai gratuit de l'auto-école est terminé. Le propriétaire doit choisir une formule pour rouvrir l'accès ; rien n'est perdu.
         </Notice>
       )}
 
@@ -147,7 +158,7 @@ export default async function AbonnementPage({ searchParams }: { searchParams: P
           <div>
             <p className="text-sm font-semibold text-muted">Statut</p>
             <p className="mt-1 text-xl font-extrabold">
-              {!access.active ? (neverPaid ? "En attente de paiement" : "Expiré") : access.trial ? "Accès offert" : `Abonnement ${PLANS[ctx.school.plan].name}`}
+              {!access.active ? (neverPaid ? "Essai gratuit terminé" : "Abonnement expiré") : access.trial ? "Essai gratuit en cours" : `Abonnement ${PLANS[ctx.school.plan].name}`}
             </p>
           </div>
           {access.active && (

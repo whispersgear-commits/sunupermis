@@ -14,7 +14,7 @@ const TOC = [
   { id: "objet", label: "Objet" },
   { id: "definitions", label: "Définitions" },
   { id: "compte", label: "Compte et accès" },
-  { id: "acces", label: "Ouverture de l'accès" },
+  { id: "acces", label: "Essai gratuit et ouverture de l'accès" },
   { id: "tarifs", label: "Abonnement et paiement" },
   { id: "echeance", label: "Échéance et suspension" },
   { id: "engagements", label: "Vos engagements" },
@@ -74,10 +74,14 @@ export default function ConditionsPage() {
         </ul>
       </Section>
 
-      <Section id="acces" n={4} title="Ouverture de l'accès">
+      <Section id="acces" n={4} title="Essai gratuit et ouverture de l'accès">
         <p>
-          La formule est choisie lors de l'inscription. L'accès au logiciel s'ouvre <b>dès la confirmation du paiement</b> du premier abonnement ; il n'y a pas
-          de période d'essai gratuite. Aucun prélèvement n'a lieu automatiquement.
+          Chaque nouvelle auto-école bénéficie d'un <b>essai gratuit de 3 jours</b>, avec toutes les fonctions, sans moyen de paiement à fournir. L'essai est
+          accordé une fois par auto-école. La formule choisie à l'inscription peut être changée avant de payer.
+        </p>
+        <p>
+          À la fin de l'essai, l'accès aux pages de gestion demande un abonnement payant. Rien n'est prélevé automatiquement : sans paiement, l'accès est
+          simplement suspendu et les données sont conservées. Un abonnement payé pendant l'essai commence à la fin de celui-ci.
         </p>
       </Section>
 
@@ -103,7 +107,7 @@ export default function ConditionsPage() {
 
       <Section id="echeance" n={6} title="Échéance et suspension">
         <p>
-          À la fin de la période payée, l'accès aux pages de gestion est suspendu jusqu'au paiement ; les pages Abonnement et Réglages restent
+          À la fin de l'essai ou de la période payée, l'accès aux pages de gestion est suspendu jusqu'au paiement ; les pages Abonnement et Réglages restent
           accessibles. <b>Vos données ne sont pas effacées</b> pendant la suspension : elles réapparaissent dès le renouvellement (voir la durée de conservation
           dans la politique de confidentialité).
         </p>

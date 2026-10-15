@@ -10,7 +10,7 @@ export function PlanComparison({ current, className, highlight = "pro" }: { curr
     <div className={cn("overflow-hidden rounded-3xl border border-line bg-surface", className)}>
       <div className="border-b border-line px-5 py-4">
         <h2 className="font-bold">Comparer les formules</h2>
-        <p className="text-xs text-muted">Toutes les formules : élèves illimités, sans engagement, sans renouvellement automatique.</p>
+        <p className="text-xs text-muted">Toutes les formules : 3 jours d'essai gratuit, élèves illimités, sans engagement, sans renouvellement automatique.</p>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[540px] text-sm">

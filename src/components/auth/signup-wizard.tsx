@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, ArrowRight, Building2, Check, CreditCard, Eye, EyeOff, Lock, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, Building2, Check, Eye, EyeOff, Gift, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { money } from "@/lib/format";
 import { PLAN_HIGHLIGHTS, PLANS, planPrice, type PlanId } from "@/lib/plans";
@@ -19,7 +19,7 @@ const STEPS = [
   { id: "formule", label: "Formule", icon: Sparkles },
   { id: "ecole", label: "Auto-école", icon: Building2 },
   { id: "compte", label: "Compte", icon: UserRound },
-  { id: "paiement", label: "Paiement", icon: CreditCard },
+  { id: "essai", label: "Essai gratuit", icon: Gift },
 ] as const;
 
 const accounts = (id: PlanId) => {
@@ -80,7 +80,7 @@ export function SignupWizard({ defaultPlan, defaultMonths }: { defaultPlan: Plan
 
             {/* Étape 1 : formule */}
             <Panel index={0} step={step} dir={dir} panels={panels}>
-              <StepTitle n={1} title="Choisissez votre formule" text="Sans engagement, sans renouvellement automatique. Vous pourrez changer de formule plus tard." />
+              <StepTitle n={1} title="Choisissez votre formule" text="3 jours d'essai gratuit avec toutes les fonctions, sans moyen de paiement. Vous pourrez changer de formule plus tard." />
               <div className="mb-5 inline-flex rounded-2xl border border-line bg-surface p-1 text-sm font-semibold">
                 {([1, 12] as const).map((m) => (
                   <button
@@ -212,12 +212,12 @@ export function SignupWizard({ defaultPlan, defaultMonths }: { defaultPlan: Plan
                   </div>
                 </Field>
               </div>
-              <Nav onBack={() => go(1)} onNext={() => go(3)} nextLabel="Vérifier ma commande" />
+              <Nav onBack={() => go(1)} onNext={() => go(3)} nextLabel="Vérifier et terminer" />
             </Panel>
 
             {/* Étape 4 : récapitulatif et paiement */}
             <Panel index={3} step={step} dir={dir} panels={panels}>
-              <StepTitle n={4} title="Récapitulatif" text="Vérifiez vos informations, puis réglez votre abonnement pour ouvrir votre espace." />
+              <StepTitle n={4} title="Récapitulatif" text="Vérifiez vos informations : votre espace s'ouvre tout de suite, gratuitement pendant 3 jours." />
               <div className="divide-y divide-line overflow-hidden rounded-3xl border border-line bg-surface">
                 <Recap title="Formule" onEdit={() => go(0)}>
                   {PLANS[plan].name} · {months === 1 ? "mensuel" : "annuel"} · {accounts(plan).toLowerCase()}
@@ -234,24 +234,14 @@ export function SignupWizard({ defaultPlan, defaultMonths }: { defaultPlan: Plan
 
               <div className="mt-5 rounded-3xl border border-line bg-surface p-5 sm:p-6">
                 <div className="flex items-baseline justify-between gap-4">
-                  <span className="font-semibold">Total à payer aujourd'hui</span>
-                  <span className="whitespace-nowrap text-2xl font-extrabold tracking-tight">{money(total)}</span>
+                  <span className="font-semibold">À payer aujourd'hui</span>
+                  <span className="whitespace-nowrap text-2xl font-extrabold tracking-tight text-brand-700 dark:text-brand-200">0 FCFA</span>
                 </div>
                 <p className="mt-1 text-sm text-muted">
-                  {months === 1 ? "Accès pour 1 mois." : `Accès pour 12 mois, au prix de 10 (${money(planPrice(plan, 1) * 2)} d'économie).`} Aucun renouvellement automatique.
+                  3 jours d'essai gratuit, toutes les fonctions incluses. Ensuite, pour continuer : <b className="text-ink">{money(total)}</b>{" "}
+                  {months === 1 ? "par mois" : `pour 12 mois (${money(planPrice(plan, 1) * 2)} d'économie)`}. Sans engagement : sans paiement, l'accès se met
+                  simplement en pause et vos données sont gardées.
                 </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {[
-                    ["Wave", "#1dc4ff"],
-                    ["Orange Money", "#ff7900"],
-                    ["Carte bancaire", "#64748b"],
-                  ].map(([label, color]) => (
-                    <span key={label} className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-1.5 text-xs font-semibold">
-                      <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
-                      {label}
-                    </span>
-                  ))}
-                </div>
               </div>
 
               <div className="mt-5">
@@ -261,13 +251,13 @@ export function SignupWizard({ defaultPlan, defaultMonths }: { defaultPlan: Plan
               <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <BackButton onClick={() => go(2)} />
                 <Submit className="h-12 w-full px-7 text-base sm:w-auto">
-                  <Lock className="h-4 w-4" />
-                  Payer {money(total)}
+                  <Gift className="h-4 w-4" />
+                  Commencer mes 3 jours gratuits
                 </Submit>
               </div>
               <p className="mt-4 flex items-center gap-2 text-xs text-muted">
                 <ShieldCheck className="h-4 w-4 text-brand-600" />
-                Paiement sécurisé par Bictorys. SunuPermis ne voit jamais vos données bancaires.
+                Aucun moyen de paiement demandé maintenant. Vous paierez seulement si vous continuez.
               </p>
             </Panel>
           </div>
@@ -431,13 +421,17 @@ function OrderSummary({ plan, months, total }: { plan: PlanId; months: 1 | 12; t
             </div>
           )}
           <div className="flex items-baseline justify-between pt-2">
-            <span className="font-semibold">Total</span>
+            <span className="font-semibold">Après l'essai</span>
             <span className="text-2xl font-extrabold">{money(total)}</span>
+          </div>
+          <div className="flex items-baseline justify-between text-lane">
+            <span className="font-semibold">Aujourd'hui</span>
+            <span className="text-lg font-extrabold">0 FCFA · 3 jours offerts</span>
           </div>
         </div>
         <p className="mt-5 flex items-start gap-2 text-xs text-slate-400">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-400" />
-          Paiement sécurisé par Wave, Orange Money ou carte. Sans engagement.
+          Essai sans engagement. Ensuite, paiement sécurisé par Wave, Orange Money ou carte.
         </p>
         <div className="lane-dashes mt-6 h-1.5 w-full opacity-70" />
       </div>

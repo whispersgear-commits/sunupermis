@@ -3,7 +3,7 @@ import { SunuAgence } from "@/components/sunu-agence";
 
 export default function NotFound() {
   return (
-    <div className="grid min-h-screen place-items-center px-6 text-center">
+    <main className="grid min-h-screen place-items-center px-6 text-center">
       <div>
         <p className="text-6xl">🚧</p>
         <h1 className="mt-4 text-2xl font-extrabold">Route barrée</h1>
@@ -15,6 +15,6 @@ export default function NotFound() {
           <SunuAgence />
         </div>
       </div>
-    </div>
+    </main>
   );
 }

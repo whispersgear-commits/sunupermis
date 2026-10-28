@@ -12,7 +12,7 @@ export function PlanComparison({ current, className, highlight = "pro" }: { curr
         <h2 className="font-bold">Comparer les formules</h2>
         <p className="text-xs text-muted">Toutes les formules : 3 jours d'essai gratuit, élèves illimités, sans engagement, sans renouvellement automatique.</p>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Tableau comparatif des formules">
         <table className="w-full min-w-[540px] text-sm">
           <thead>
             <tr className="border-b border-line">

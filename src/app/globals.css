@@ -13,7 +13,9 @@
   --color-brand-200: #a7f3d0;
   --color-brand-400: #34d399;
   --color-brand-500: #10b981;
-  --color-brand-600: #0b8a5a;
+  /* 600 : assez foncé pour un texte blanc dessus et pour du texte vert sur
+     fond clair (contraste ≥ 4,5:1, WCAG AA). */
+  --color-brand-600: #097a4f;
   --color-brand-700: #087049;
   --color-brand-800: #065a3b;
   --color-brand-900: #053f2a;
@@ -29,7 +31,7 @@
   --bg: #f7f8f6;
   --surface: #ffffff;
   --ink: #0f172a;
-  --muted: #64748b;
+  --muted: #5f6b7f;
   --line: #e5e7eb;
 }
 
@@ -40,6 +42,15 @@
     --ink: #e5e7eb;
     --muted: #94a3b8;
     --line: #1f2a3d;
+  }
+  /* Texte vert sur fond sombre : le vert de la marque y manque de contraste,
+     on passe à sa version claire (≥ 7:1). */
+  .text-brand-600,
+  .text-brand-700 {
+    color: var(--color-brand-400);
+  }
+  .text-red-600 {
+    color: #f87171;
   }
 }
 

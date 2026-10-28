@@ -48,7 +48,7 @@ export default async function RecuPage({ params }: { params: Promise<{ id: strin
               href={waLink(student.phone, receiptMessage(student.full_name, ctx.school.name, label, payment.amount, METHOD_LABEL[payment.method], balanceAfter, verifyUrl))}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#25D366] px-4 text-sm font-semibold text-white transition hover:brightness-95"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#25D366] px-4 text-sm font-semibold text-asphalt transition hover:brightness-95"
             >
               <MessageCircle className="h-4 w-4" /> Envoyer sur WhatsApp
             </a>

@@ -89,7 +89,7 @@ export default async function ElevePage({ params, searchParams }: { params: Prom
       label: nouveau ? "Bienvenue" : "WhatsApp",
       icon: MessageCircle,
       external: true,
-      className: "bg-[#25D366] text-white hover:brightness-95",
+      className: "bg-[#25D366] text-asphalt hover:brightness-95",
     },
     ...(isStaff
       ? [

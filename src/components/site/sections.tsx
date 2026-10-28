@@ -5,15 +5,7 @@ import { PLAN_HIGHLIGHTS, PLANS as PLAN_DEFS, type PlanId } from "@/lib/plans";
 import { PlanComparison } from "@/components/app/plan-comparison";
 import { LegalLinks } from "@/components/legal/legal-page";
 import { useEffect, useRef, useState } from "react";
-import {
-  AnimatePresence,
-  animate,
-  motion,
-  useInView,
-  useMotionValueEvent,
-  useScroll,
-  useTransform,
-} from "motion/react";
+import { AnimatePresence, animate, m as mo, useInView, useMotionValueEvent, useScroll, useTransform } from "motion/react";
 import {
   BarChart3,
   CalendarDays,
@@ -36,7 +28,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 /** Apparition au défilement, réutilisée par toutes les sections. */
 function Reveal({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
   return (
-    <motion.div
+    <mo.div
       className={className}
       initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -44,7 +36,7 @@ function Reveal({ children, delay = 0, className }: { children: React.ReactNode;
       transition={{ duration: 0.7, delay, ease }}
     >
       {children}
-    </motion.div>
+    </mo.div>
   );
 }
 
@@ -58,7 +50,7 @@ export function Nav() {
   useMotionValueEvent(scrollY, "change", (y) => setSolid(y > 40));
 
   return (
-    <motion.header
+    <mo.header
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-colors duration-300",
         solid ? "border-b border-white/10 bg-asphalt/85 backdrop-blur-xl" : "bg-transparent",
@@ -90,7 +82,7 @@ export function Nav() {
           </Link>
         </nav>
       </div>
-    </motion.header>
+    </mo.header>
   );
 }
 
@@ -197,7 +189,7 @@ export function Features() {
 
         <div className="mt-12 grid gap-4 md:grid-cols-3">
           {FEATURES.map((f, i) => (
-            <motion.div
+            <mo.div
               key={f.title}
               className={cn(
                 "group relative overflow-hidden rounded-3xl border border-line bg-surface p-7",
@@ -215,7 +207,7 @@ export function Features() {
               </span>
               <h3 className="mt-5 text-lg font-bold">{f.title}</h3>
               <p className="mt-2 max-w-md text-muted">{f.text}</p>
-            </motion.div>
+            </mo.div>
           ))}
         </div>
       </div>
@@ -275,7 +267,7 @@ export function WhatsAppDemo() {
           </div>
           <div className="space-y-2.5">
             {messages.map((m, i) => (
-              <motion.div
+              <mo.div
                 key={i}
                 initial={{ opacity: 0, y: 16, scale: 0.92 }}
                 animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
@@ -286,7 +278,7 @@ export function WhatsAppDemo() {
                 )}
               >
                 {m.text}
-              </motion.div>
+              </mo.div>
             ))}
           </div>
         </div>
@@ -321,11 +313,11 @@ export function Steps() {
 
         <div ref={ref} className="relative mt-14">
           <div className="absolute bottom-0 left-6 top-0 w-1 rounded-full bg-line" />
-          <motion.div className="absolute bottom-0 left-6 top-0 w-1 origin-top rounded-full bg-brand-500" style={{ scaleY }} />
+          <mo.div className="absolute bottom-0 left-6 top-0 w-1 origin-top rounded-full bg-brand-500" style={{ scaleY }} />
           <ol className="space-y-10">
             {steps.map((s, i) => (
-              <Reveal key={s.title} delay={i * 0.05}>
-                <li className="relative flex gap-6">
+              <li key={s.title} className="relative">
+                <Reveal delay={i * 0.05} className="relative flex gap-6">
                   <span className="relative z-10 grid h-13 w-13 shrink-0 place-items-center rounded-2xl border-4 border-bg bg-brand-600 text-white shadow-lg">
                     <s.icon className="h-5 w-5" />
                   </span>
@@ -334,8 +326,8 @@ export function Steps() {
                     <h3 className="text-xl font-bold">{s.title}</h3>
                     <p className="mt-1 text-muted">{s.text}</p>
                   </div>
-                </li>
-              </Reveal>
+                </Reveal>
+              </li>
             ))}
           </ol>
         </div>
@@ -375,7 +367,7 @@ export function Pricing() {
                 className="relative rounded-xl px-4 py-2"
               >
                 {annual === value && (
-                  <motion.span layoutId="billing" className="absolute inset-0 rounded-xl bg-brand-600" transition={{ type: "spring", stiffness: 400, damping: 30 }} />
+                  <mo.span layoutId="billing" className="absolute inset-0 rounded-xl bg-brand-600" transition={{ type: "spring", stiffness: 400, damping: 30 }} />
                 )}
                 <span className={cn("relative", annual === value ? "text-white" : "text-muted")}>
                   {value ? "Annuel · 2 mois offerts" : "Mensuel"}
@@ -391,7 +383,7 @@ export function Pricing() {
             const shown = annual ? Math.round((monthly * 10) / 12) : monthly;
             return (
               <Reveal key={p.name} delay={i * 0.1}>
-                <motion.div
+                <mo.div
                   whileHover={{ y: -8 }}
                   className={cn(
                     "relative h-full rounded-3xl border p-7",
@@ -405,7 +397,7 @@ export function Pricing() {
                   <p className={cn("text-sm", p.featured ? "text-slate-400" : "text-muted")}>{p.for}</p>
                   <p className="mt-5 flex items-baseline gap-1">
                     <AnimatePresence mode="popLayout" initial={false}>
-                      <motion.span
+                      <mo.span
                         key={shown}
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -413,7 +405,7 @@ export function Pricing() {
                         className="text-4xl font-extrabold tracking-tight"
                       >
                         {groupDigits(shown)}
-                      </motion.span>
+                      </mo.span>
                     </AnimatePresence>
                     <span className={p.featured ? "text-slate-400" : "text-muted"}>FCFA / mois</span>
                   </p>
@@ -429,12 +421,12 @@ export function Pricing() {
                     href={`/inscription?plan=${p.id}&mois=${annual ? 12 : 1}`}
                     className={cn(
                       "mt-8 flex h-11 items-center justify-center rounded-xl font-semibold transition",
-                      p.featured ? "bg-brand-500 text-white hover:bg-brand-400" : "border border-line hover:border-brand-600 hover:text-brand-700",
+                      p.featured ? "bg-brand-600 text-white hover:bg-brand-700" : "border border-line hover:border-brand-600 hover:text-brand-700",
                     )}
                   >
                     Essayer 3 jours gratuits
                   </Link>
-                </motion.div>
+                </mo.div>
               </Reveal>
             );
           })}
@@ -478,20 +470,20 @@ export function Faq() {
                   aria-expanded={open === i}
                 >
                   {item.q}
-                  <motion.span animate={{ rotate: open === i ? 180 : 0 }} transition={{ duration: 0.25 }}>
+                  <mo.span animate={{ rotate: open === i ? 180 : 0 }} transition={{ duration: 0.25 }}>
                     <ChevronDown className="h-5 w-5 text-muted" />
-                  </motion.span>
+                  </mo.span>
                 </button>
                 <AnimatePresence initial={false}>
                   {open === i && (
-                    <motion.div
+                    <mo.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.3, ease }}
                     >
                       <p className="px-5 pb-5 text-muted">{item.a}</p>
-                    </motion.div>
+                    </mo.div>
                   )}
                 </AnimatePresence>
               </div>
@@ -517,11 +509,11 @@ export function FinalCta() {
           <p className="relative mx-auto mt-4 max-w-xl text-lg text-brand-50/90">
             Essayez gratuitement pendant 3 jours. Prête en 2 minutes, sans moyen de paiement.
           </p>
-          <motion.div className="relative mt-8 inline-block" whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-            <Link href="/inscription" className="inline-flex h-12 items-center rounded-2xl bg-white px-7 font-bold text-brand-700 shadow-xl">
+          <mo.div className="relative mt-8 inline-block" whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+            <Link href="/inscription" className="inline-flex h-12 items-center rounded-2xl bg-white px-7 font-bold text-brand-800 shadow-xl">
               Commencer l'essai gratuit
             </Link>
-          </motion.div>
+          </mo.div>
         </div>
       </Reveal>
     </section>

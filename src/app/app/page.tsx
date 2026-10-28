@@ -142,7 +142,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               {access.daysLeft <= 1 ? "Dernier jour" : `Encore ${access.daysLeft} jours`} avec toutes les fonctions
             </span>
           </span>
-          <span className="inline-flex h-10 items-center rounded-xl bg-brand-500 px-4 text-sm font-semibold">Choisir ma formule</span>
+          <span className="inline-flex h-10 items-center rounded-xl bg-brand-600 px-4 text-sm font-semibold">Choisir ma formule</span>
         </Link>
       )}
 
@@ -301,7 +301,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                         rel="noopener noreferrer"
                         aria-label={`Rappeler ${l.student.full_name} sur WhatsApp`}
                         title="Envoyer le rappel sur WhatsApp"
-                        className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#25D366]/10 text-[#128C7E] transition hover:bg-[#25D366] hover:text-white"
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#25D366]/10 text-[#128C7E] transition hover:bg-[#25D366] hover:text-asphalt"
                       >
                         <MessageCircle className="h-4 w-4" />
                       </a>
@@ -343,7 +343,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
                         rel="noopener noreferrer"
                         aria-label={`Relancer ${b.student!.full_name} sur WhatsApp`}
                         title="Relancer sur WhatsApp"
-                        className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#25D366]/10 text-[#128C7E] transition hover:bg-[#25D366] hover:text-white"
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#25D366]/10 text-[#128C7E] transition hover:bg-[#25D366] hover:text-asphalt"
                       >
                         <MessageCircle className="h-4 w-4" />
                       </a>

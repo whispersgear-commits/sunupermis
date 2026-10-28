@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname, useSearchParams } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +26,7 @@ export function Sheet({
   children,
   defaultOpen = false,
   triggerClassName,
+  triggerLabel,
   wide = false,
 }: {
   trigger: React.ReactNode;
@@ -34,6 +35,8 @@ export function Sheet({
   children: React.ReactNode;
   defaultOpen?: boolean;
   triggerClassName?: string;
+  /** Nom du bouton pour les lecteurs d'écran, quand il n'a pas de texte (icône, avatar). */
+  triggerLabel?: string;
   wide?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -64,7 +67,7 @@ export function Sheet({
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={triggerClassName}>
+      <button type="button" onClick={() => setOpen(true)} className={triggerClassName} aria-label={triggerLabel}>
         {trigger}
       </button>
       {mounted &&
@@ -72,14 +75,14 @@ export function Sheet({
           <AnimatePresence>
             {open && (
               <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6">
-                <motion.div
+                <m.div
                   className="absolute inset-0 bg-asphalt/50 backdrop-blur-sm"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setOpen(false)}
                 />
-                <motion.div
+                <m.div
                   role="dialog"
                   aria-modal="true"
                   aria-labelledby={titleId}
@@ -114,7 +117,7 @@ export function Sheet({
                   <div className="p-5">
                     <SheetContext.Provider value={{ close: () => setOpen(false) }}>{children}</SheetContext.Provider>
                   </div>
-                </motion.div>
+                </m.div>
               </div>
             )}
           </AnimatePresence>,

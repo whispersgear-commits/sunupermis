@@ -304,7 +304,7 @@ export default async function PaiementsPage({ searchParams }: { searchParams: Pr
                     rel="noopener noreferrer"
                     aria-label={`Relancer ${b.s!.full_name} sur WhatsApp`}
                     title="Relancer sur WhatsApp"
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#25D366] text-white transition hover:brightness-95"
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#25D366] text-asphalt transition hover:brightness-95"
                   >
                     <MessageCircle className="h-4 w-4" />
                   </a>

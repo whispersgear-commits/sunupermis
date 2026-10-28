@@ -1,8 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { SpamTrap } from "@/components/ui/spam-trap";
 import Link from "next/link";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m as mo } from "motion/react";
 import { ArrowLeft, ArrowRight, Building2, Check, Eye, EyeOff, Gift, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { money } from "@/lib/format";
@@ -75,6 +76,7 @@ export function SignupWizard({ defaultPlan, defaultMonths }: { defaultPlan: Plan
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
         <ActionForm action={signUp} className="min-w-0">
           <div onKeyDown={next}>
+            <SpamTrap />
             <input type="hidden" name="plan" value={plan} />
             <input type="hidden" name="months" value={months} />
 
@@ -89,7 +91,7 @@ export function SignupWizard({ defaultPlan, defaultMonths }: { defaultPlan: Plan
                     onClick={() => setMonths(m)}
                     className={cn("relative rounded-xl px-4 py-2 transition", months === m ? "text-white" : "text-muted hover:text-ink")}
                   >
-                    {months === m && <motion.span layoutId="signup-months" className="absolute inset-0 rounded-xl bg-brand-600" transition={{ type: "spring", stiffness: 400, damping: 32 }} />}
+                    {months === m && <mo.span layoutId="signup-months" className="absolute inset-0 rounded-xl bg-brand-600" transition={{ type: "spring", stiffness: 400, damping: 32 }} />}
                     <span className="relative">
                       {m === 1 ? "Mensuel" : "Annuel"}
                       {m === 12 && <span className={cn("ml-2 rounded-full px-2 py-0.5 text-[11px]", months === 12 ? "bg-white/20" : "bg-lane-soft text-amber-800")}>2 mois offerts</span>}
@@ -284,6 +286,7 @@ function Stepper({ step, onGo }: { step: number; onGo: (i: number) => void }) {
               disabled={!done}
               className={cn("flex items-center gap-2 text-left", done && "cursor-pointer")}
               aria-current={active ? "step" : undefined}
+              aria-label={`Étape ${i + 1} sur ${STEPS.length} : ${s.label}`}
             >
               <span
                 className={cn(
@@ -299,7 +302,7 @@ function Stepper({ step, onGo }: { step: number; onGo: (i: number) => void }) {
             </button>
             {i < STEPS.length - 1 && (
               <span className="relative h-0.5 flex-1 overflow-hidden rounded-full bg-line">
-                <motion.span className="absolute inset-y-0 left-0 bg-brand-600" animate={{ width: done ? "100%" : "0%" }} transition={{ duration: 0.4 }} />
+                <mo.span className="absolute inset-y-0 left-0 bg-brand-600" animate={{ width: done ? "100%" : "0%" }} transition={{ duration: 0.4 }} />
               </span>
             )}
           </li>
@@ -333,9 +336,9 @@ function Panel({
     >
       <AnimatePresence mode="wait" initial={false}>
         {active && (
-          <motion.div key={index} initial={{ opacity: 0, x: 24 * dir }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}>
+          <mo.div key={index} initial={{ opacity: 0, x: 24 * dir }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}>
             {children}
-          </motion.div>
+          </mo.div>
         )}
       </AnimatePresence>
       {/* Champs des étapes masquées : gardés hors animation pour rester envoyés. */}

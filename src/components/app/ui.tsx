@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { animate, motion, useInView, useReducedMotion } from "motion/react";
+import { animate, m, useInView, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { money } from "@/lib/format";
 
@@ -10,7 +10,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 
 export function PageHeader({ title, description, actions }: { title: React.ReactNode; description?: React.ReactNode; actions?: React.ReactNode }) {
   return (
-    <motion.header
+    <m.header
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25, ease }}
@@ -21,20 +21,20 @@ export function PageHeader({ title, description, actions }: { title: React.React
         {description && <p className="mt-1 text-sm text-muted sm:text-base">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
-    </motion.header>
+    </m.header>
   );
 }
 
 export function Card({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: Math.min(delay, 0.1), ease }}
       className={cn("rounded-3xl border border-line bg-surface", className)}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -92,7 +92,7 @@ export function Stat({
   href?: string;
 }) {
   const body = (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: Math.min(delay, 0.1), ease }}
@@ -104,15 +104,15 @@ export function Stat({
     >
       <div className="flex items-center justify-between">
         <p className={cn("text-xs font-semibold sm:text-sm", tone === "brand" ? "text-brand-50" : "text-muted")}>{label}</p>
-        <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-xl sm:h-9 sm:w-9", tone === "brand" ? "bg-white/15" : tone === "bad" ? "bg-red-50 text-red-600" : "bg-brand-50 text-brand-700")}>
+        <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-xl sm:h-9 sm:w-9", tone === "brand" ? "bg-white/15" : tone === "bad" ? "bg-red-50 text-red-600" : "bg-brand-50 text-brand-700 dark:bg-brand-900/50")}>
           {icon}
         </span>
       </div>
       <p className={cn("mt-2 whitespace-nowrap text-lg font-extrabold tracking-tight tabular-nums sm:mt-3 sm:text-2xl xl:text-[28px]", tone === "bad" && value > 0 && "text-red-600", tone === "good" && "text-brand-700")}>
         <AnimatedNumber value={value} format={format} />
       </p>
-      {hint && <p className={cn("mt-0.5 text-[11px] sm:text-xs", tone === "brand" ? "text-brand-50/80" : "text-muted")}>{hint}</p>}
-    </motion.div>
+      {hint && <p className={cn("mt-0.5 text-[11px] sm:text-xs", tone === "brand" ? "text-white/90" : "text-muted")}>{hint}</p>}
+    </m.div>
   );
   return href ? <Link href={href}>{body}</Link> : body;
 }
@@ -120,25 +120,25 @@ export function Stat({
 /** Liste dont les lignes apparaissent l'une après l'autre. */
 export function StaggerList({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <motion.ul
+    <m.ul
       className={className}
       initial="hidden"
       animate="show"
       variants={{ hidden: {}, show: { transition: { staggerChildren: 0.025 } } }}
     >
       {children}
-    </motion.ul>
+    </m.ul>
   );
 }
 
 export function StaggerItem({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <motion.li
+    <m.li
       className={className}
       variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0, transition: { duration: 0.2, ease } } }}
     >
       {children}
-    </motion.li>
+    </m.li>
   );
 }
 
@@ -156,14 +156,14 @@ export function Badge({ children, tone = "neutral" }: { children: React.ReactNod
 export function Empty({ title, children }: { title: string; children?: React.ReactNode }) {
   return (
     <div className="px-6 py-12 text-center">
-      <motion.div
+      <m.div
         initial={{ scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 18 }}
         className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-brand-50 text-2xl dark:bg-brand-900/40"
       >
         🚗
-      </motion.div>
+      </m.div>
       <p className="font-bold">{title}</p>
       {children && <div className="mt-1 text-sm text-muted">{children}</div>}
     </div>
@@ -173,7 +173,7 @@ export function Empty({ title, children }: { title: string; children?: React.Rea
 export function ButtonLink({ href, children, variant = "primary", className }: { href: string; children: React.ReactNode; variant?: "primary" | "secondary" | "whatsapp"; className?: string }) {
   const external = href.startsWith("http");
   return (
-    <motion.span whileTap={{ scale: 0.97 }} className="inline-flex">
+    <m.span whileTap={{ scale: 0.97 }} className="inline-flex">
       <Link
         href={href}
         target={external ? "_blank" : undefined}
@@ -182,13 +182,13 @@ export function ButtonLink({ href, children, variant = "primary", className }: {
           "inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-semibold transition",
           variant === "primary" && "bg-brand-600 text-white shadow-lg shadow-brand-600/20 hover:bg-brand-700",
           variant === "secondary" && "border border-line bg-surface hover:border-brand-600 hover:text-brand-700",
-          variant === "whatsapp" && "bg-[#25D366] text-white hover:brightness-95",
+          variant === "whatsapp" && "bg-[#25D366] text-asphalt hover:brightness-95",
           className,
         )}
       >
         {children}
       </Link>
-    </motion.span>
+    </m.span>
   );
 }
 
@@ -233,7 +233,7 @@ export function ProgressBar({ value, total, tone = "brand" }: { value: number; t
   const pct = total ? Math.min(100, Math.round((value / total) * 100)) : 0;
   return (
     <div className="h-1.5 overflow-hidden rounded-full bg-line">
-      <motion.div
+      <m.div
         className={cn("h-full rounded-full", tone === "bad" ? "bg-red-500" : "bg-gradient-to-r from-brand-500 to-brand-600")}
         initial={{ width: 0 }}
         animate={{ width: `${pct}%` }}

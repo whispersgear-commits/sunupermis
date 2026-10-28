@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { CalendarDays, QrCode } from "lucide-react";
 
 /**
@@ -20,7 +20,7 @@ export function Showcase() {
 
         <div className="relative mx-auto mt-12 max-w-5xl lg:pr-24">
           {/* Ordinateur : le planning de la semaine */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-80px" }}
@@ -42,10 +42,10 @@ export function Showcase() {
                 className="object-cover object-top"
               />
             </div>
-          </motion.div>
+          </m.div>
 
           {/* Le reçu avec QR code, posé sur le coin de l'écran comme une feuille */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 40, rotate: 0 }}
             whileInView={{ opacity: 1, y: 0, rotate: 3 }}
             viewport={{ once: true, margin: "-80px" }}
@@ -60,7 +60,7 @@ export function Showcase() {
               sizes="224px"
               className="h-auto w-full"
             />
-          </motion.div>
+          </m.div>
         </div>
 
         <div className="mx-auto mt-14 grid max-w-3xl gap-6 sm:grid-cols-2 lg:mt-28 lg:pr-24">

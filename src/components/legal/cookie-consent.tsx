@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import { Cookie, Lock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -59,9 +59,8 @@ export function CookieConsent() {
   useEffect(() => {
     const c = read();
     if (!c) {
-      // Petit délai : la page s'affiche d'abord, le bandeau arrive ensuite.
-      const t = setTimeout(() => setBanner(true), 600);
-      return () => clearTimeout(t);
+      setBanner(true);
+      return;
     }
     setAudience(c.audience);
   }, []);
@@ -77,6 +76,7 @@ export function CookieConsent() {
 
   function decide(value: boolean) {
     save(value);
+    window.dispatchEvent(new Event("sp:consent"));
     setAudience(value);
     setBanner(false);
     setSettings(false);
@@ -86,7 +86,7 @@ export function CookieConsent() {
     <>
       <AnimatePresence>
         {banner && !settings && (
-          <motion.div
+          <m.div
             role="region"
             aria-label="Cookies"
             initial={{ opacity: 0, y: 40 }}
@@ -102,8 +102,7 @@ export function CookieConsent() {
               <div className="min-w-0">
                 <p className="font-bold">Nous respectons votre vie privée</p>
                 <p className="mt-1 text-sm text-muted">
-                  SunuPermis utilise des cookies nécessaires au fonctionnement du site (connexion, sécurité). Avec votre accord, nous pourrons aussi mesurer
-                  l'audience de façon anonyme pour améliorer le service. Aucun cookie publicitaire.{" "}
+                  Cookies nécessaires au site, et mesure d'audience anonyme seulement avec votre accord.{" "}
                   <Link href="/confidentialite#cookies" className="font-semibold text-brand-700 hover:underline">
                     En savoir plus
                   </Link>
@@ -129,14 +128,14 @@ export function CookieConsent() {
                 Tout accepter
               </button>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       <AnimatePresence>
         {settings && (
-          <motion.div className="fixed inset-0 z-[70] grid place-items-end bg-black/50 p-3 backdrop-blur-sm sm:place-items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <motion.div
+          <m.div className="fixed inset-0 z-[70] grid place-items-end bg-black/50 p-3 backdrop-blur-sm sm:place-items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <m.div
               role="dialog"
               aria-modal="true"
               aria-labelledby="cookie-title"
@@ -166,7 +165,11 @@ export function CookieConsent() {
                 </Category>
                 <Category
                   title="Mesure d'audience"
-                  text="Statistiques de visite anonymes, pour savoir quelles pages sont utiles. Aucun outil de ce type n'est actif aujourd'hui : votre choix sera respecté si nous en ajoutons un."
+                  text={
+                    process.env.NEXT_PUBLIC_POSTHOG_KEY
+                      ? "Statistiques de visite anonymes (PostHog, hébergé dans l'Union européenne), pour savoir quelles pages sont utiles. Sans cookie, adresse IP non conservée, aucun texte saisi n'est enregistré."
+                      : "Statistiques de visite anonymes, pour savoir quelles pages sont utiles. Aucun outil de ce type n'est actif aujourd'hui : votre choix sera respecté si nous en ajoutons un."
+                  }
                 >
                   <Toggle checked={audience} onChange={setAudience} label="Mesure d'audience" />
                 </Category>
@@ -187,8 +190,8 @@ export function CookieConsent() {
                   Enregistrer mes choix
                 </button>
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
     </>

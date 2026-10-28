@@ -31,7 +31,7 @@ export function LegalPage({
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:py-12">
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:py-12">
         <nav aria-label="Documents légaux" className="-mx-4 mb-8 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:px-0 print:hidden">
           <div className="flex w-max gap-1 rounded-2xl border border-line bg-surface p-1">
             {LEGAL_PAGES.map((p) => (
@@ -100,7 +100,7 @@ export function LegalPage({
         <div className="mt-8 flex justify-center print:hidden">
           <SunuAgence />
         </div>
-      </div>
+      </main>
     </div>
   );
 }

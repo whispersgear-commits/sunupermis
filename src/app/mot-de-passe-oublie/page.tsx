@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
+import { SpamTrap } from "@/components/ui/spam-trap";
 import Link from "next/link";
 import { AuthShell } from "@/components/auth-shell";
 import { ActionForm, Submit } from "@/components/ui/form";
 import { Field, Input } from "@/components/ui/fields";
 import { forgotPassword } from "../auth-actions";
 
-export const metadata: Metadata = { title: "Mot de passe oublié" };
+export const metadata: Metadata = {
+  title: "Mot de passe oublié",
+  description: "Recevez un lien par e-mail pour choisir un nouveau mot de passe SunuPermis.",
+  robots: { index: false },
+};
 
 export default function MotDePasseOubliePage() {
   return (
@@ -19,6 +24,7 @@ export default function MotDePasseOubliePage() {
       }
     >
       <ActionForm action={forgotPassword} className="space-y-4" resetOnSuccess>
+        <SpamTrap />
         <Field label="Adresse e-mail">
           <Input name="email" type="email" required autoComplete="email" />
         </Field>

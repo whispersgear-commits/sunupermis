@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 
 /**
  * Fine barre en haut de l'écran, lancée dès qu'on touche un lien interne et
@@ -39,7 +39,7 @@ export function NavProgress() {
   return (
     <AnimatePresence>
       {active && (
-        <motion.div
+        <m.div
           className="fixed inset-x-0 top-0 z-[70] h-0.5 origin-left bg-brand-500"
           initial={{ scaleX: 0, opacity: 1 }}
           animate={{ scaleX: 0.85, transition: { duration: 2.5, ease: [0.1, 0.6, 0.3, 1] } }}

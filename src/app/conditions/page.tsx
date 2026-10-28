@@ -8,6 +8,7 @@ import { money } from "@/lib/format";
 export const metadata: Metadata = {
   title: "Conditions d'utilisation",
   description: "Conditions générales d'utilisation du logiciel SunuPermis pour les auto-écoles.",
+  alternates: { canonical: "/conditions" },
 };
 
 const TOC = [

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import { ActionForm, Submit, type FormState } from "@/components/ui/form";
 import { Field, Input, Select, Textarea } from "@/components/ui/fields";
 import { dayMonth, groupDigits, money, todayIso } from "@/lib/format";
@@ -113,7 +113,7 @@ export function StudentForm({ action, agencies = [] }: { action: (s: FormState, 
           <ul className="mt-5 space-y-2">
             <AnimatePresence initial={false}>
               {schedule.map((row, i) => (
-                <motion.li
+                <m.li
                   key={`${i}-${row.date}`}
                   layout
                   initial={{ opacity: 0, x: 16 }}
@@ -127,11 +127,11 @@ export function StudentForm({ action, agencies = [] }: { action: (s: FormState, 
                     {dayMonth(row.date)}
                   </span>
                   <span className="font-bold">{money(row.amount)}</span>
-                </motion.li>
+                </m.li>
               ))}
             </AnimatePresence>
           </ul>
-          <Submit className="mt-6 w-full bg-brand-500 hover:bg-brand-400">Inscrire l'élève</Submit>
+          <Submit className="mt-6 w-full">Inscrire l'élève</Submit>
         </div>
       </aside>
     </ActionForm>

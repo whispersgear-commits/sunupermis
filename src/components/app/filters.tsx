@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { Loader2, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { inputClass } from "@/components/ui/fields";
@@ -139,9 +139,9 @@ export function Tabs({ items, id, variant = "pills", className }: { items: TabIt
           >
             {t.active &&
               (variant === "pills" ? (
-                <motion.span layoutId={`${id}-pill`} className="absolute inset-0 rounded-xl bg-asphalt dark:bg-brand-600" transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+                <m.span layoutId={`${id}-pill`} className="absolute inset-0 rounded-xl bg-asphalt dark:bg-brand-600" transition={{ type: "spring", stiffness: 420, damping: 34 }} />
               ) : (
-                <motion.span layoutId={`${id}-line`} className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-brand-600" transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+                <m.span layoutId={`${id}-line`} className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-brand-600" transition={{ type: "spring", stiffness: 420, damping: 34 }} />
               ))}
             <span className="relative">{t.label}</span>
             <LinkPending className="absolute right-1 top-1" />
@@ -149,7 +149,7 @@ export function Tabs({ items, id, variant = "pills", className }: { items: TabIt
               <span
                 className={cn(
                   "relative rounded-full px-1.5 text-[11px] font-bold tabular-nums",
-                  t.active && variant === "pills" ? "bg-white/20 text-white" : t.tone === "bad" && t.count > 0 ? "bg-red-50 text-red-600 dark:bg-red-900/40 dark:text-red-200" : "bg-bg text-muted",
+                  t.active && variant === "pills" ? "bg-black/25 text-white" : t.tone === "bad" && t.count > 0 ? "bg-red-50 text-red-600 dark:bg-red-900/40 dark:text-red-200" : "bg-bg text-muted",
                 )}
               >
                 {t.count}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "motion/react";
+import { m as mo } from "motion/react";
 import { Check, Loader2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { money } from "@/lib/format";
@@ -43,7 +43,7 @@ export function PlanPicker({
             className={cn("relative rounded-xl px-4 py-2 transition", months === m ? "text-white" : "text-muted hover:text-ink")}
           >
             {months === m && (
-              <motion.span layoutId="months-pill" className="absolute inset-0 rounded-xl bg-brand-600" transition={{ type: "spring", stiffness: 400, damping: 32 }} />
+              <mo.span layoutId="months-pill" className="absolute inset-0 rounded-xl bg-brand-600" transition={{ type: "spring", stiffness: 400, damping: 32 }} />
             )}
             <span className="relative">{m === 1 ? "Mensuel" : "Annuel · 2 mois offerts"}</span>
           </button>
@@ -57,7 +57,7 @@ export function PlanPicker({
           // Formule trop petite pour l'équipe actuelle.
           const tooSmall = plan.users !== null && memberCount > plan.users;
           return (
-            <motion.div
+            <mo.div
               key={id}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -111,7 +111,7 @@ export function PlanPicker({
                     href={`${contactHref}?text=${encodeURIComponent(`Bonjour, je souhaite activer la formule ${plan.name} (${months === 1 ? "mensuelle" : "annuelle"}) de SunuPermis.`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#25D366] px-5 text-sm font-semibold text-white hover:brightness-95"
+                    className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#25D366] px-5 text-sm font-semibold text-asphalt hover:brightness-95"
                   >
                     Activer via WhatsApp
                   </a>
@@ -119,7 +119,7 @@ export function PlanPicker({
                   <p className="text-center text-sm text-muted">Paiement en ligne bientôt disponible.</p>
                 )}
               </div>
-            </motion.div>
+            </mo.div>
           );
         })}
       </div>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SpamTrap } from "@/components/ui/spam-trap";
 import { TermsCheckbox } from "@/components/legal/terms-checkbox";
 import Link from "next/link";
 import { AuthShell } from "@/components/auth-shell";
@@ -63,6 +64,7 @@ export default async function RejoindrePage({ params }: { params: Promise<{ toke
       }
     >
       <ActionForm action={signUp} className="space-y-4">
+        <SpamTrap />
         <input type="hidden" name="invite" value={token} />
         <Field label="Votre nom">
           <Input name="name" required defaultValue={invitation.label} autoComplete="name" />

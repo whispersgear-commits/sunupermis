@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -61,7 +61,7 @@ export function ActionForm({
     <form ref={ref} action={formAction} className={className}>
       <AnimatePresence>
         {state.error && (
-          <motion.p
+          <m.p
             key={state.error}
             role="alert"
             initial={{ opacity: 0, y: -6, height: 0 }}
@@ -70,7 +70,7 @@ export function ActionForm({
             className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800"
           >
             {state.error}
-          </motion.p>
+          </m.p>
         )}
       </AnimatePresence>
       {children}
@@ -89,7 +89,7 @@ export function Submit({
 }) {
   const { pending } = useFormStatus();
   return (
-    <motion.button
+    <m.button
       type="submit"
       disabled={pending}
       whileTap={{ scale: 0.97 }}
@@ -103,6 +103,6 @@ export function Submit({
     >
       {pending && <Loader2 className="h-4 w-4 animate-spin" />}
       {children}
-    </motion.button>
+    </m.button>
   );
 }

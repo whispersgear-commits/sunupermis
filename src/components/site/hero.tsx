@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "motion/react";
+import { m, useReducedMotion } from "motion/react";
 import { ArrowRight, CalendarCheck, MessageCircle, Wallet } from "lucide-react";
 
 /**
@@ -22,12 +22,12 @@ export function Hero() {
     <section className="relative overflow-hidden bg-asphalt text-white">
       {/* Halo de couleur en fond */}
       <div className="pointer-events-none absolute inset-0">
-        <motion.div
+        <m.div
           className="absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full bg-brand-600/30 blur-3xl"
           animate={reduce ? undefined : { x: [0, 60, 0], y: [0, 40, 0] }}
           transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div
+        <m.div
           className="absolute -right-32 top-20 h-[420px] w-[420px] rounded-full bg-lane/15 blur-3xl"
           animate={reduce ? undefined : { x: [0, -50, 0], y: [0, 50, 0] }}
           transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
@@ -36,7 +36,7 @@ export function Hero() {
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-24 pt-28 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:pt-32">
         <div>
-          <motion.span
+          <m.span
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -44,23 +44,25 @@ export function Hero() {
           >
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-lane" />
             Conçu au Sénégal, pour les auto-écoles d'Afrique
-          </motion.span>
+          </m.span>
 
           <h1 className="mt-6 text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-6xl">
             {words.map((word, i) => (
-              <motion.span
+              <m.span
                 key={i}
                 className="mr-[0.25em] inline-block"
-                initial={{ opacity: 0, y: 28, filter: "blur(8px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                // Le titre est visible dès le premier affichage (il compte pour la
+                // vitesse perçue) ; seul un léger glissement l'anime.
+                initial={{ y: 18 }}
+                animate={{ y: 0 }}
                 transition={{ duration: 0.6, delay: 0.15 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
               >
                 {word === "auto-école" ? <span className="text-brand-400">{word}</span> : word}
-              </motion.span>
+              </m.span>
             ))}
           </h1>
 
-          <motion.p
+          <m.p
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.75 }}
@@ -68,9 +70,9 @@ export function Hero() {
           >
             Élèves, planning des leçons, paiements en plusieurs fois, reçus et rappels WhatsApp. Fini le
             cahier, fini les impayés oubliés.
-          </motion.p>
+          </m.p>
 
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.9 }}
@@ -78,7 +80,7 @@ export function Hero() {
           >
             <Link
               href="/inscription"
-              className="group inline-flex h-12 items-center gap-2 rounded-2xl bg-brand-500 px-6 font-semibold text-white shadow-lg shadow-brand-500/30 transition hover:bg-brand-400"
+              className="group inline-flex h-12 items-center gap-2 rounded-2xl bg-brand-600 px-6 font-semibold text-white shadow-lg shadow-brand-600/30 transition hover:bg-brand-700"
             >
               Essayer 3 jours gratuits
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
@@ -89,15 +91,15 @@ export function Hero() {
             >
               Voir le logiciel
             </a>
-          </motion.div>
-          <motion.p
+          </m.div>
+          <m.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.1 }}
             className="mt-4 text-sm text-slate-400"
           >
             3 jours gratuits · Sans moyen de paiement · Sans engagement
-          </motion.p>
+          </m.p>
         </div>
 
         <HeroVisual reduce={!!reduce} />
@@ -106,14 +108,14 @@ export function Hero() {
       {/* La route */}
       <div className="relative h-20 bg-asphalt-2">
         <div className="lane-dashes absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 opacity-80" />
-        <motion.div
+        <m.div
           className="absolute top-1/2 -translate-y-[85%]"
           initial={{ x: "-20vw" }}
           animate={reduce ? { x: "10vw" } : { x: ["-20vw", "110vw"] }}
           transition={{ duration: 9, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
         >
           <Car />
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );
@@ -129,7 +131,7 @@ function HeroVisual({ reduce }: { reduce: boolean }) {
   return (
     <div className="relative mx-auto w-full max-w-sm">
       {/* Téléphone */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 40, rotate: -4 }}
         animate={{ opacity: 1, y: 0, rotate: -2 }}
         transition={{ duration: 0.9, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
@@ -146,11 +148,11 @@ function HeroVisual({ reduce }: { reduce: boolean }) {
             className="object-cover object-top"
           />
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Notifications flottantes */}
       {cards.map((card, i) => (
-        <motion.div
+        <m.div
           key={card.title}
           initial={{ opacity: 0, scale: 0.8, x: i % 2 ? 30 : -30 }}
           animate={
@@ -175,7 +177,7 @@ function HeroVisual({ reduce }: { reduce: boolean }) {
             <span className="block text-sm font-semibold">{card.title}</span>
             <span className="block truncate text-xs text-slate-400">{card.text}</span>
           </span>
-        </motion.div>
+        </m.div>
       ))}
     </div>
   );

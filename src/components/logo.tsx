@@ -15,7 +15,7 @@ export function Logo({ href = "/", className, light = false }: { href?: string; 
         <span className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-white bg-lane" />
       </span>
       <span className={cn("text-lg", light ? "text-white" : "text-ink")}>
-        Sunu<span className="text-brand-600">Permis</span>
+        Sunu<span className={light ? "text-brand-400" : "text-brand-600"}>Permis</span>
       </span>
     </Link>
   );

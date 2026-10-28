@@ -6,10 +6,12 @@ import { normalizePhone } from "@/lib/phone";
 import { siteOrigin } from "@/lib/session";
 import type { FormState } from "@/components/ui/form";
 import { LEGAL } from "@/lib/legal";
+import { isSpam } from "@/lib/spam";
 import { PLANS } from "@/lib/plans";
 
 const text = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim();
 const TOKEN = /^[0-9a-f]{36}$/;
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 
 /** Une destination de retour n'est suivie que si elle reste dans le site. */
@@ -18,6 +20,7 @@ function safePath(path: string, fallback = "/app"): string {
 }
 
 export async function signIn(_s: FormState, fd: FormData): Promise<FormState> {
+  if (isSpam(fd, 0)) return { error: "Envoi refusé. Patientez un instant puis réessayez." };
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({
     email: text(fd, "email").toLowerCase(),
@@ -43,6 +46,7 @@ export async function signIn(_s: FormState, fd: FormData): Promise<FormState> {
  * `/bienvenue`.
  */
 export async function signUp(_s: FormState, fd: FormData): Promise<FormState> {
+  if (isSpam(fd)) return { error: "Envoi refusé. Patientez un instant puis réessayez." };
   const invite = text(fd, "invite");
   const isInvite = TOKEN.test(invite);
   const school = text(fd, "school");
@@ -54,7 +58,10 @@ export async function signUp(_s: FormState, fd: FormData): Promise<FormState> {
   const plan = text(fd, "plan") in PLANS ? text(fd, "plan") : "pro";
   const months = text(fd, "months") === "12" ? 12 : 1;
 
-  if (fullName.length < 2) return { error: "Indiquez votre nom." };
+  if (fullName.length < 2 || fullName.length > 120) return { error: "Indiquez votre nom." };
+  if (!EMAIL.test(email) || email.length > 200) return { error: "Adresse e-mail invalide." };
+  if (school.length > 120) return { error: "Nom de l'auto-école trop long." };
+  if (password.length > 72) return { error: "Mot de passe trop long (72 caractères au plus)." };
   if (!isInvite && school.length < 2) return { error: "Indiquez le nom de l'auto-école." };
   if (!isInvite && !phone) return { error: "Numéro de téléphone invalide." };
   if (password.length < 8) return { error: "Le mot de passe doit faire au moins 8 caractères." };
@@ -122,8 +129,9 @@ export async function acceptInvite(_s: FormState, fd: FormData): Promise<FormSta
 }
 
 export async function forgotPassword(_s: FormState, fd: FormData): Promise<FormState> {
+  if (isSpam(fd)) return { error: "Envoi refusé. Patientez un instant puis réessayez." };
   const email = text(fd, "email").toLowerCase();
-  if (!email.includes("@")) return { error: "Adresse e-mail invalide." };
+  if (!EMAIL.test(email)) return { error: "Adresse e-mail invalide." };
   const supabase = await createClient();
   const origin = await siteOrigin();
   await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/auth/callback?next=/reinitialiser` });

@@ -5,6 +5,7 @@ import { LEGAL } from "@/lib/legal";
 export const metadata: Metadata = {
   title: "Politique de confidentialité",
   description: "Comment SunuPermis collecte, utilise et protège les données des auto-écoles et de leurs élèves.",
+  alternates: { canonical: "/confidentialite" },
 };
 
 const TOC = [
@@ -152,8 +153,9 @@ export default function ConfidentialitePage() {
           déconnecte.
         </p>
         <p>
-          À votre première visite, un bandeau vous permet d'<b>accepter</b>, de <b>refuser</b> ou de <b>personnaliser</b> la mesure d'audience. Aucun outil
-          de mesure d'audience n'est actif à ce jour ; si nous en ajoutons un, il ne se chargera qu'avec votre accord. Aucun cookie publicitaire, aucun traceur
+          À votre première visite, un bandeau vous permet d'<b>accepter</b>, de <b>refuser</b> ou de <b>personnaliser</b> la mesure d'audience. La mesure
+          d'audience (PostHog, hébergé dans l'Union européenne) ne se charge qu'avec votre accord : sans cookie, adresse IP non conservée, sans
+          enregistrement de ce que vous saisissez. Aucun cookie publicitaire, aucun traceur
           de réseau social. Vous pouvez changer d'avis à tout moment avec le lien « Gérer les cookies » en bas de chaque page.
         </p>
       </Section>

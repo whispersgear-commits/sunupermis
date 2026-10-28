@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, m } from "motion/react";
 import { Check, Copy, MessageCircle } from "lucide-react";
 import { ActionForm, Submit } from "@/components/ui/form";
 import { Field, Input, Select } from "@/components/ui/fields";
@@ -37,7 +37,7 @@ export function InviteForm({ instructors }: { instructors: { id: string; full_na
       </div>
       <AnimatePresence initial={false}>
         {role === "instructor" && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+          <m.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
             <Field label="Fiche moniteur" hint="Pour qu'il voie seulement ses propres leçons">
               <Select name="instructor_id" defaultValue={instructors[0]?.id ?? ""}>
                 <option value="">Sans fiche moniteur</option>
@@ -48,7 +48,7 @@ export function InviteForm({ instructors }: { instructors: { id: string; full_na
                 ))}
               </Select>
             </Field>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
       <Submit className="w-full">Créer le lien d'invitation</Submit>
@@ -78,7 +78,7 @@ export function InviteLinkActions({ url, label, school }: { url: string; label: 
         href={`https://wa.me/?text=${encodeURIComponent(message)}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#25D366] px-2.5 text-xs font-semibold text-white"
+        className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[#25D366] px-2.5 text-xs font-semibold text-asphalt"
       >
         <MessageCircle className="h-3.5 w-3.5" /> Envoyer
       </a>

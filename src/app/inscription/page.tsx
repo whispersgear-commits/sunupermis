@@ -6,7 +6,11 @@ import { SunuAgence } from "@/components/sunu-agence";
 import { SignupWizard } from "@/components/auth/signup-wizard";
 import { PLANS, type PlanId } from "@/lib/plans";
 
-export const metadata: Metadata = { title: "Créer mon auto-école" };
+export const metadata: Metadata = {
+  title: "Essai gratuit de 3 jours",
+  description: "Créez votre auto-école sur SunuPermis en 2 minutes : 3 jours gratuits avec toutes les fonctions, sans moyen de paiement.",
+  alternates: { canonical: "/inscription" },
+};
 
 /** Inscription en quatre étapes : formule, auto-école, compte, paiement. */
 export default async function InscriptionPage({ searchParams }: { searchParams: Promise<{ plan?: string; mois?: string }> }) {

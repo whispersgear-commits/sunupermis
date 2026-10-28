@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { PendingButton } from "@/components/ui/pending-button";
 import { usePathname } from "next/navigation";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import {
   CalendarDays,
   CalendarPlus,
@@ -102,7 +102,7 @@ export function Shell({
         {daysLeft} jour{daysLeft > 1 ? "s" : ""} restant{daysLeft > 1 ? "s" : ""}
       </p>
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
-        <motion.div
+        <m.div
           className="h-full rounded-full bg-lane"
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(100, (daysLeft / (trial ? 3 : 30)) * 100)}%` }}
@@ -126,7 +126,7 @@ export function Shell({
           {items.map((item) => (
             <Link key={item.href} href={item.href} className="relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold">
               {active(item) && (
-                <motion.span
+                <m.span
                   layoutId="nav-active"
                   className="absolute inset-0 rounded-xl bg-brand-50 dark:bg-brand-900/40"
                   transition={{ type: "spring", stiffness: 420, damping: 34 }}
@@ -187,7 +187,7 @@ export function Shell({
             <Link href="/app/eleves" className="grid h-10 w-10 place-items-center rounded-xl text-muted hover:bg-bg" aria-label="Rechercher un élève">
               <Search className="h-5 w-5" />
             </Link>
-            <Sheet title={schoolName} description={`${userName} · ${ROLE_LABEL[role]}`} triggerClassName="rounded-xl p-0.5" trigger={<Avatar name={userName} size="sm" />}>
+            <Sheet title={schoolName} description={`${userName} · ${ROLE_LABEL[role]}`} triggerClassName="rounded-xl p-0.5" triggerLabel="Menu du compte" trigger={<Avatar name={userName} size="sm" />}>
               <div className="space-y-4">
                 {trialCard}
                 <ul className="overflow-hidden rounded-2xl border border-line">
@@ -244,7 +244,7 @@ export function Shell({
           ) : (
             <Link key={item.href} href={item.href} className="relative flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold">
               {active(item) && (
-                <motion.span layoutId="tab-active" className="absolute top-0 h-1 w-10 rounded-b-full bg-brand-600" transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+                <m.span layoutId="tab-active" className="absolute top-0 h-1 w-10 rounded-b-full bg-brand-600" transition={{ type: "spring", stiffness: 420, damping: 34 }} />
               )}
               <item.icon className={cn("h-5 w-5", active(item) ? "text-brand-600" : "text-muted")} />
               <span className={active(item) ? "text-brand-700 dark:text-brand-200" : "text-muted"}>{item.label}</span>

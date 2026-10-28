@@ -10,7 +10,7 @@ export default function RootError({ error, reset }: { error: Error & { digest?: 
     console.error(error);
   }, [error]);
   return (
-    <div className="grid min-h-screen place-items-center px-6 text-center">
+    <main className="grid min-h-screen place-items-center px-6 text-center">
       <div>
         <p className="text-6xl">🛞</p>
         <h1 className="mt-4 text-2xl font-extrabold">Petite crevaison</h1>
@@ -25,6 +25,6 @@ export default function RootError({ error, reset }: { error: Error & { digest?: 
         </div>
         {error.digest && <p className="mt-4 text-xs text-muted">Code : {error.digest}</p>}
       </div>
-    </div>
+    </main>
   );
 }

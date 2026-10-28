@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
+import { SpamTrap } from "@/components/ui/spam-trap";
 import Link from "next/link";
 import { AuthShell } from "@/components/auth-shell";
 import { ActionForm, Submit } from "@/components/ui/form";
 import { Field, Input } from "@/components/ui/fields";
 import { signIn } from "../auth-actions";
 
-export const metadata: Metadata = { title: "Connexion" };
+export const metadata: Metadata = {
+  title: "Connexion",
+  description: "Connectez-vous à l'espace SunuPermis de votre auto-école.",
+  alternates: { canonical: "/connexion" },
+};
 
 export default async function ConnexionPage({ searchParams }: { searchParams: Promise<{ next?: string; lien?: string }> }) {
   const { next, lien } = await searchParams;
@@ -28,6 +33,7 @@ export default async function ConnexionPage({ searchParams }: { searchParams: Pr
         </p>
       )}
       <ActionForm action={signIn} className="space-y-4">
+        <SpamTrap />
         <input type="hidden" name="next" value={next ?? "/app"} />
         <Field label="Adresse e-mail">
           <Input name="email" type="email" required autoComplete="email" placeholder="vous@exemple.sn" />

@@ -7,6 +7,7 @@ import { LEGAL } from "@/lib/legal";
 export const metadata: Metadata = {
   title: "Mentions légales",
   description: "Éditeur, hébergement et contact du site SunuPermis.",
+  alternates: { canonical: "/mentions-legales" },
 };
 
 const TOC = [

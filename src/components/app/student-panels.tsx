@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { ActionForm, Submit } from "@/components/ui/form";
 import { Field, Input, Select } from "@/components/ui/fields";
 import { cn } from "@/lib/utils";
@@ -16,7 +16,7 @@ export function ProgressRing({ value, total }: { value: number; total: number })
   return (
     <svg width="84" height="84" viewBox="0 0 84 84" className="-rotate-90" aria-hidden>
       <circle cx="42" cy="42" r={r} fill="none" stroke="var(--line)" strokeWidth="8" />
-      <motion.circle
+      <m.circle
         cx="42"
         cy="42"
         r={r}

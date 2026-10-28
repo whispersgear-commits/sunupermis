@@ -1,0 +1,60 @@
+# Sauvegarde automatique de la base SunuPermis, chaque nuit.
+#
+# Exporte toute la base Supabase (structure + données) avec pg_dump, la
+# compresse et la garde 30 jours comme « artefact » privé du dépôt
+# (onglet Actions > Sauvegarde de la base > artefact « sauvegarde-… »).
+#
+# Prérequis : un secret de dépôt SUPABASE_DB_URL contenant la chaîne de
+# connexion Postgres (Supabase > Project Settings > Database > Connection
+# string > « Session pooler »), mot de passe compris.
+#
+# Restaurer : gunzip sauvegarde.sql.gz puis
+#   psql "<chaîne de connexion de la base cible>" -f sauvegarde.sql
+
+name: Sauvegarde de la base
+
+on:
+  schedule:
+    - cron: "17 2 * * *" # chaque nuit à 2 h 17 (heure de Dakar = UTC)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  sauvegarde:
+    runs-on: ubuntu-latest
+    container: postgres:17
+    timeout-minutes: 20
+    steps:
+      - name: Vérifier la configuration
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::error::Le secret SUPABASE_DB_URL n'est pas configuré (voir l'en-tête de ce fichier)."
+            exit 1
+          fi
+
+      - name: Exporter la base
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          stamp=$(date -u +%Y-%m-%d)
+          mkdir -p out
+          pg_dump "$SUPABASE_DB_URL" \
+            --no-owner --no-privileges \
+            --schema=public --schema=auth \
+            --exclude-table-data='auth.sessions' --exclude-table-data='auth.refresh_tokens' \
+            --file="out/sauvegarde-$stamp.sql"
+          gzip -9 "out/sauvegarde-$stamp.sql"
+          ls -lh out
+          echo "STAMP=$stamp" >> "$GITHUB_ENV"
+
+      - name: Garder la sauvegarde 30 jours
+        uses: actions/upload-artifact@v4
+        with:
+          name: sauvegarde-${{ env.STAMP }}
+          path: out/
+          retention-days: 30
+          if-no-files-found: error
